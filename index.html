@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Sistema Matrículas</title>
+
+<style>
+body {
+    font-family: Arial;
+    background: #eef2f7;
+    margin: 0;
+}
+
+.header {
+    background: #1e3a5f;
+    color: white;
+    padding: 15px;
+    font-size: 20px;
+}
+
+.container {
+    padding: 20px;
+}
+
+.filtros {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+input, select {
+    padding: 8px;
+    border: 1px solid #ccc;
+}
+
+.table-container {
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th {
+    background: #2f3640;
+    color: white;
+    padding: 10px;
+}
+
+td {
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+}
+
+button {
+    padding: 5px 10px;
+    background: #2563eb;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #1d4ed8;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">📚 Sistema de Matrículas 2026</div>
+
+<div class="container">
+
+<div class="filtros">
+    <input type="text" id="buscar" placeholder="Buscar alumno o RUT">
+
+    <select id="curso">
+        <option value="">Curso</option>
+    </select>
+
+    <select id="estado">
+        <option value="">Estado</option>
+    </select>
+</div>
+
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>Estudiante</th>
+<th>RUN</th>
+<th>Curso</th>
+<th>Estado</th>
+<th>Ficha</th>
+</tr>
+</thead>
+
+<tbody id="tabla"></tbody>
+</table>
+</div>
+
+</div>
+
+<script>
+const URL = "PEGA_AQUI_TU_CSV";
+
+let data = [];
+
+fetch(URL)
+.then(res => res.text())
+.then(csv => {
+
+    const filas = csv.split("\n");
+    const headers = filas[0].split(",");
+
+    const getIndex = (name) => headers.findIndex(h => h.trim() === name);
+
+    const idxNombre = getIndex("Estudiante");
+    const idxRut = getIndex("RUN / IPE");
+    const idxCurso = getIndex("Curso");
+    const idxEstado = getIndex("Estado");
+    const idxPDF = getIndex("Merged Doc URL - FICHA 2026");
+
+    data = filas.slice(1).map(f => {
+        const c = f.split(",");
+        return {
+            nombre: c[idxNombre],
+            rut: c[idxRut],
+            curso: c[idxCurso],
+            estado: c[idxEstado],
+            pdf: c[idxPDF]
+        };
+    });
+
+    cargarFiltros();
+    render();
+});
+
+function cargarFiltros(){
+    const cursos = [...new Set(data.map(d => d.curso))];
+    const estados = [...new Set(data.map(d => d.estado))];
+
+    cursos.forEach(c => {
+        if(c){
+            curso.innerHTML += `<option value="${c}">${c}</option>`;
+        }
+    });
+
+    estados.forEach(e => {
+        if(e){
+            estado.innerHTML += `<option value="${e}">${e}</option>`;
+        }
+    });
+}
+
+function render(){
+    const b = buscar.value.toLowerCase();
+    const c = curso.value;
+    const e = estado.value;
+
+    const filtrado = data.filter(d =>
+        (d.nombre?.toLowerCase().includes(b) || d.rut?.includes(b)) &&
+        (c === "" || d.curso === c) &&
+        (e === "" || d.estado === e)
+    );
+
+    tabla.innerHTML = "";
+
+    filtrado.forEach(d => {
+        tabla.innerHTML += `
+        <tr>
+            <td>${d.nombre || ""}</td>
+            <td>${d.rut || ""}</td>
+            <td>${d.curso || ""}</td>
+            <td>${d.estado || ""}</td>
+            <td>${d.pdf ? `<a href="${d.pdf}" target="_blank"><button>Ver PDF</button></a>` : "—"}</td>
+        </tr>`;
+    });
+}
+
+document.querySelectorAll("input, select").forEach(el => {
+    el.addEventListener("input", render);
+});
+</script>
+
+</body>
+</html>
