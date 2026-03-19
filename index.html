@@ -6,17 +6,10 @@
 
 <style>
 body { font-family: Arial; background:#eef2f7; margin:0; }
-
-.header {
-    background:#1e3a5f;
-    color:white;
-    padding:15px;
-}
-
+.header { background:#1e3a5f; color:white; padding:15px; }
 .container { padding:20px; }
 
 .filtros { display:flex; gap:10px; margin-bottom:15px; }
-
 input, select { padding:8px; }
 
 table {
@@ -24,13 +17,11 @@ table {
     background:white;
     border-collapse:collapse;
 }
-
 th {
     background:#2f3640;
     color:white;
     padding:10px;
 }
-
 td {
     padding:8px;
     border-bottom:1px solid #eee;
@@ -44,7 +35,6 @@ button {
     cursor:pointer;
 }
 
-/* DETALLE */
 .detalle {
     display:none;
     background:white;
@@ -55,11 +45,10 @@ button {
 
 .grid {
     display:grid;
-    grid-template-columns:repeat(2, 1fr);
+    grid-template-columns:repeat(2,1fr);
     gap:10px;
 }
 
-/* MODAL */
 .modal {
     display:none;
     position:fixed;
@@ -75,7 +64,6 @@ button {
     width:60%;
 }
 
-/* PDF */
 iframe {
     width:100%;
     height:500px;
@@ -87,14 +75,12 @@ iframe {
 
 <body>
 
-<div class="header">📚 Sistema Matrículas 2026</div>
+<div class="header">📚 Sistema de Matrículas 2026</div>
 
 <div class="container">
 
 <div class="filtros">
     <input type="text" id="buscar" placeholder="Buscar alumno o RUT">
-    <select id="curso"><option value="">Curso</option></select>
-    <select id="estado"><option value="">Estado</option></select>
 </div>
 
 <table>
@@ -109,12 +95,10 @@ iframe {
 <tbody id="tabla"></tbody>
 </table>
 
-<!-- DETALLE -->
 <div id="detalle" class="detalle"></div>
 
-<!-- MODAL APODERADO -->
 <div id="modal" class="modal">
-  <div class="modal-content" id="modal-content"></div>
+  <div class="modal-content" id="modalContent"></div>
 </div>
 
 </div>
@@ -128,10 +112,10 @@ fetch(URL)
 .then(r => r.text())
 .then(csv => {
 
-    const filas = csv.split("\n");
-    const headers = filas[0].split(",");
+    const filas = csv.split("\n").map(f => f.split(","));
+    const headers = filas[0];
 
-    const get = n => headers.findIndex(h => h.trim() === n);
+    const get = name => headers.findIndex(h => h.trim() === name);
 
     const idx = {
         rut: get("RUN / IPE"),
@@ -147,13 +131,11 @@ fetch(URL)
         comuna: get("Comuna"),
         correo: get("Correo Electrónico"),
         telefono: get("Teléfono"),
-        estado: get("Estado"),
         pdf: get("Merged Doc URL - FICHA 2026"),
 
         ap_tit: get("Nombre Apoderado TITULAR"),
         rut_tit: get("RUT  TITULAR"),
         tel_tit: get("Teléfono  TITULAR"),
-        edu_tit: get("Nivel Educacional TITULAR"),
         mail_tit: get("Correo Electrónico  TITULAR"),
 
         ap_sup: get("Nombre Apoderado SUPLENTE"),
@@ -162,51 +144,50 @@ fetch(URL)
         mail_sup: get("Correo Electrónico SUPLENTE")
     };
 
-    data = filas.slice(1).map(f => {
-        const c = f.split(",");
+    data = filas.slice(1).map(c => {
         let obj = {};
         for (let k in idx) obj[k] = c[idx[k]];
         return obj;
     });
 
-    cargarFiltros();
     render();
 });
 
-function cargarFiltros(){
-    [...new Set(data.map(d => d.curso))].forEach(c => {
-        curso.innerHTML += `<option>${c}</option>`;
-    });
-    [...new Set(data.map(d => d.estado))].forEach(e => {
-        estado.innerHTML += `<option>${e}</option>`;
-    });
-}
-
 function render(){
-    const b = buscar.value.toLowerCase();
+    const b = document.getElementById("buscar").value.toLowerCase();
 
     const filtrado = data.filter(d =>
         d.nombre?.toLowerCase().includes(b) ||
         d.rut?.includes(b)
     );
 
+    const tabla = document.getElementById("tabla");
     tabla.innerHTML = "";
 
     filtrado.forEach((d,i) => {
         tabla.innerHTML += `
         <tr>
-            <td>${d.nombre}</td>
-            <td>${d.rut}</td>
-            <td>${d.curso}</td>
-            <td><button onclick="verDetalle(${i})">Ver</button></td>
+            <td>${d.nombre || ""}</td>
+            <td>${d.rut || ""}</td>
+            <td>${d.curso || ""}</td>
+            <td><button class="btn-ver" data-id="${i}">Ver</button></td>
         </tr>`;
+    });
+
+    document.querySelectorAll(".btn-ver").forEach(btn => {
+        btn.addEventListener("click", e => {
+            const id = e.target.dataset.id;
+            verDetalle(id);
+        });
     });
 }
 
 function verDetalle(i){
     const d = data[i];
 
+    const detalle = document.getElementById("detalle");
     detalle.style.display = "block";
+
     detalle.innerHTML = `
     <h3>${d.nombre}</h3>
 
@@ -229,25 +210,30 @@ function verDetalle(i){
     <button onclick="verApoderado(${i})">Ver Apoderados</button>
 
     <h4>Ficha del Estudiante</h4>
-    <iframe src="${d.pdf}"></iframe>
+    ${d.pdf ? `<iframe src="${d.pdf.replace('/view','/preview')}"></iframe>` : "Sin PDF"}
     `;
 }
 
 function verApoderado(i){
     const d = data[i];
 
+    const modal = document.getElementById("modal");
+    const content = document.getElementById("modalContent");
+
     modal.style.display = "block";
 
-    modalContent.innerHTML = `
+    content.innerHTML = `
     <h3>Apoderado Titular</h3>
-    <p>${d.ap_tit} - ${d.rut_tit}</p>
-    <p>Tel: ${d.tel_tit}</p>
-    <p>Email: ${d.mail_tit}</p>
+    <p>${d.ap_tit || ""}</p>
+    <p>RUT: ${d.rut_tit || ""}</p>
+    <p>Tel: ${d.tel_tit || ""}</p>
+    <p>Email: ${d.mail_tit || ""}</p>
 
     <h3>Apoderado Suplente</h3>
-    <p>${d.ap_sup} - ${d.rut_sup}</p>
-    <p>Tel: ${d.tel_sup}</p>
-    <p>Email: ${d.mail_sup}</p>
+    <p>${d.ap_sup || ""}</p>
+    <p>RUT: ${d.rut_sup || ""}</p>
+    <p>Tel: ${d.tel_sup || ""}</p>
+    <p>Email: ${d.mail_sup || ""}</p>
 
     <br>
     <button onclick="cerrarModal()">Cerrar</button>
@@ -255,16 +241,10 @@ function verApoderado(i){
 }
 
 function cerrarModal(){
-    modal.style.display = "none";
+    document.getElementById("modal").style.display = "none";
 }
 
-document.querySelectorAll("input, select").forEach(e =>
-    e.addEventListener("input", render)
-);
-window.verDetalle = verDetalle;
-window.verApoderado = verApoderado;
-window.cerrarModal = cerrarModal;
-
+document.getElementById("buscar").addEventListener("input", render);
 </script>
 
 </body>
