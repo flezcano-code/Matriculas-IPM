@@ -6,10 +6,36 @@
 
 <style>
 body { font-family: Arial; background:#eef2f7; margin:0; }
-.header { background:#1e3a5f; color:white; padding:15px; }
+
+.header {
+    background:#1e3a5f;
+    color:white;
+    padding:15px;
+    display:flex;
+    align-items:center;
+    gap:15px;
+}
+
+.logo {
+    height:50px;
+}
+
 .container { padding:20px; }
 
-input { padding:8px; margin-bottom:15px; width:300px; }
+.filtros {
+    display:flex;
+    gap:10px;
+    margin-bottom:15px;
+}
+
+input, select {
+    padding:8px;
+}
+
+.contador {
+    margin-bottom:10px;
+    font-weight:bold;
+}
 
 table {
     width:100%;
@@ -38,11 +64,22 @@ button {
 
 <body>
 
-<div class="header">📚 Sistema de Matrículas 2026</div>
+<div class="header">
+    <!-- CAMBIA ESTE LINK POR TU LOGO -->
+    <img src="https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcRm6JqGXb_L889ILM8QpAHCyPV8QgdyjgF74gNW700Ff4xyIIMd" class="logo">
+    <h2>Sistema de Matrículas 2026</h2>
+</div>
 
 <div class="container">
 
-<input type="text" id="buscar" placeholder="Buscar alumno o RUT">
+<div class="filtros">
+    <input type="text" id="buscar" placeholder="Buscar alumno o RUN">
+    <select id="filtroCurso">
+        <option value="">Todos los cursos</option>
+    </select>
+</div>
+
+<div class="contador" id="contador"></div>
 
 <table>
 <thead>
@@ -72,22 +109,44 @@ Papa.parse(URL, {
     skipEmptyLines: true,
     complete: function(results) {
         data = results.data;
+        cargarCursos();
         render();
     }
 });
 
+function cargarCursos(){
+    const select = document.getElementById("filtroCurso");
+
+    const cursos = [...new Set(data.map(d => d["Curso"]).filter(Boolean))];
+
+    cursos.sort().forEach(curso => {
+        select.innerHTML += `<option value="${curso}">${curso}</option>`;
+    });
+}
+
 function render(){
     const b = document.getElementById("buscar").value.toLowerCase();
+    const cursoFiltro = document.getElementById("filtroCurso").value;
+
     const tabla = document.getElementById("tabla");
+
+    const filtrado = data.filter(d => {
+        const coincideTexto =
+            (d["Estudiante"] || "").toLowerCase().includes(b) ||
+            (d["RUN / IPE"] || "").includes(b);
+
+        const coincideCurso =
+            !cursoFiltro || d["Curso"] === cursoFiltro;
+
+        return coincideTexto && coincideCurso;
+    });
+
+    document.getElementById("contador").innerText =
+        "Total alumnos: " + filtrado.length;
 
     tabla.innerHTML = "";
 
-    data
-    .filter(d =>
-        (d["Estudiante"] || "").toLowerCase().includes(b) ||
-        (d["RUN / IPE"] || "").includes(b)
-    )
-    .forEach((d,i) => {
+    filtrado.forEach((d,i) => {
         tabla.innerHTML += `
         <tr>
             <td>${safe(d["Estudiante"])}</td>
@@ -180,6 +239,7 @@ function safe(text){
 }
 
 document.getElementById("buscar").addEventListener("input", render);
+document.getElementById("filtroCurso").addEventListener("change", render);
 </script>
 
 </body>
