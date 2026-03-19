@@ -5,10 +5,11 @@
 <title>Sistema Matrículas</title>
 
 <style>
-body { font-family: Arial; background:#f4f6f5; margin:0; }
+body { font-family: Arial; background:#eef2f7; margin:0; }
 
+/* HEADER */
 .header {
-    background:#0b5e2a;
+    background:#0b6b2e;
     color:white;
     padding:15px 25px;
     display:flex;
@@ -31,6 +32,7 @@ body { font-family: Arial; background:#f4f6f5; margin:0; }
     font-weight:bold;
 }
 
+/* CONTENIDO */
 .container { padding:20px; }
 
 .filtros {
@@ -41,59 +43,39 @@ body { font-family: Arial; background:#f4f6f5; margin:0; }
 
 input, select {
     padding:8px;
-    border:1px solid #ccc;
-    border-radius:5px;
 }
 
 .contador {
     margin-bottom:10px;
     font-weight:bold;
-    color:#0b5e2a;
 }
 
-.graficos {
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:20px;
-    margin-bottom:20px;
-}
-
-canvas {
-    background:white;
-    padding:10px;
-    border-radius:10px;
-}
-
+/* TABLA */
 table {
     width:100%;
     background:white;
     border-collapse:collapse;
-    border-radius:10px;
-    overflow:hidden;
 }
-
 th {
-    background:#0b5e2a;
+    background:#14532d; /* verde oscuro */
     color:white;
     padding:10px;
 }
-
 td {
     padding:8px;
     border-bottom:1px solid #eee;
 }
 
+/* BOTONES */
 button {
     padding:5px 10px;
-    background:#0b5e2a;
+    background:#15803d;
     color:white;
     border:none;
     cursor:pointer;
-    border-radius:5px;
 }
-
 button:hover {
-    background:#08491f;
+    background:#166534;
 }
 </style>
 </head>
@@ -102,8 +84,12 @@ button:hover {
 
 <div class="header">
     <div class="header-left">
+        <!-- Logo izquierdo -->
         <img src="logo.png" class="logo">
-        <img src="logo2.png" class="logo">
+
+        <!-- Logo derecho (puede ser el mismo u otro) -->
+        <img src="logo.png" class="logo">
+
         <div class="titulo">Sistema de Matrículas 2026</div>
     </div>
 </div>
@@ -119,11 +105,6 @@ button:hover {
 
 <div class="contador" id="contador"></div>
 
-<div class="graficos">
-    <canvas id="graficoCursos"></canvas>
-    <canvas id="graficoGenero"></canvas>
-</div>
-
 <table>
 <thead>
 <tr>
@@ -138,14 +119,13 @@ button:hover {
 
 </div>
 
+<!-- PapaParse -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
 const URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSrlMaCB2BM5BjhtKoOCYZS4QJsSL7ZFPXefiDQYN4KZhyh6kyYd5wZQYOKfcueyTiM5NDOPU5_MN6E/pub?gid=0&single=true&output=csv";
 
 let data = [];
-let chartCursos, chartGenero;
 
 Papa.parse(URL, {
     download: true,
@@ -155,12 +135,12 @@ Papa.parse(URL, {
         data = results.data;
         cargarCursos();
         render();
-        crearGraficos(data);
     }
 });
 
 function cargarCursos(){
     const select = document.getElementById("filtroCurso");
+
     const cursos = [...new Set(data.map(d => d["Curso"]).filter(Boolean))];
 
     cursos.sort().forEach(curso => {
@@ -172,18 +152,22 @@ function render(){
     const b = document.getElementById("buscar").value.toLowerCase();
     const cursoFiltro = document.getElementById("filtroCurso").value;
 
+    const tabla = document.getElementById("tabla");
+
     const filtrado = data.filter(d => {
-        return (
-            ((d["Estudiante"]||"").toLowerCase().includes(b) ||
-            (d["RUN / IPE"]||"").includes(b)) &&
-            (!cursoFiltro || d["Curso"] === cursoFiltro)
-        );
+        const coincideTexto =
+            (d["Estudiante"] || "").toLowerCase().includes(b) ||
+            (d["RUN / IPE"] || "").includes(b);
+
+        const coincideCurso =
+            !cursoFiltro || d["Curso"] === cursoFiltro;
+
+        return coincideTexto && coincideCurso;
     });
 
     document.getElementById("contador").innerText =
         "Total alumnos: " + filtrado.length;
 
-    const tabla = document.getElementById("tabla");
     tabla.innerHTML = "";
 
     filtrado.forEach((d,i) => {
@@ -195,62 +179,71 @@ function render(){
             <td><button onclick="verDetalle(${i})">Ver</button></td>
         </tr>`;
     });
-
-    actualizarGraficos(filtrado);
-}
-
-function crearGraficos(datos){
-    chartCursos = new Chart(document.getElementById("graficoCursos"), {
-        type: 'bar',
-        data: { labels: [], datasets: [{ label:'Por Curso', data:[] }] }
-    });
-
-    chartGenero = new Chart(document.getElementById("graficoGenero"), {
-        type: 'pie',
-        data: { labels: [], datasets: [{ data:[] }] }
-    });
-
-    actualizarGraficos(datos);
-}
-
-function actualizarGraficos(datos){
-    const cursos = contar(datos,"Curso");
-    const genero = contar(datos,"Sexo");
-
-    chartCursos.data.labels = Object.keys(cursos);
-    chartCursos.data.datasets[0].data = Object.values(cursos);
-    chartCursos.update();
-
-    chartGenero.data.labels = Object.keys(genero);
-    chartGenero.data.datasets[0].data = Object.values(genero);
-    chartGenero.update();
-}
-
-function contar(datos,campo){
-    const c={};
-    datos.forEach(d=>{
-        const val=d[campo]||"Sin dato";
-        c[val]=(c[val]||0)+1;
-    });
-    return c;
 }
 
 function verDetalle(i){
     const d = data[i];
+
     const w = window.open("", "_blank", "width=900,height=700");
 
-    w.document.write("<html><body style='font-family:Arial;padding:20px'></body></html>");
+    w.document.write("<html><head><title>Ficha Alumno</title></head><body></body></html>");
 
     w.document.body.innerHTML = `
+    <style>
+        body { font-family: Arial; padding:20px; }
+        h2 { color:#0b6b2e; }
+        .grid {
+            display:grid;
+            grid-template-columns:repeat(2,1fr);
+            gap:10px;
+        }
+        .seccion {
+            margin-top:25px;
+            padding-top:10px;
+            border-top:2px solid #eee;
+        }
+        button {
+            padding:6px 12px;
+            margin-top:15px;
+            background:#15803d;
+            color:white;
+            border:none;
+            cursor:pointer;
+        }
+    </style>
+
     <h2>${safe(d["Estudiante"])}</h2>
-    <p><b>RUN:</b> ${safe(d["RUN / IPE"])}</p>
-    <p><b>Curso:</b> ${safe(d["Curso"])}</p>
 
-    <h3>Apoderado Titular</h3>
-    <p>${safe(d["Nombre Apoderado TITULAR"])}</p>
+    <div class="grid">
+        <div><b>RUN:</b> ${safe(d["RUN / IPE"])}</div>
+        <div><b>Nacionalidad:</b> ${safe(d["Nacionalidad"])}</div>
+        <div><b>Nombre Social:</b> ${safe(d["Nombre Social"])}</div>
+        <div><b>Fecha Nacimiento:</b> ${safe(d["Fecha Nacimiento"])}</div>
+        <div><b>Sexo:</b> ${safe(d["Sexo"])}</div>
+        <div><b>Género:</b> ${safe(d["Id. de Género"])}</div>
+        <div><b>Nivel:</b> ${safe(d["Nivel"])}</div>
+        <div><b>Curso:</b> ${safe(d["Curso"])}</div>
+        <div><b>Domicilio:</b> ${safe(d["Domicilio"])}</div>
+        <div><b>Comuna:</b> ${safe(d["Comuna"])}</div>
+        <div><b>Correo:</b> ${safe(d["Correo Electrónico"])}</div>
+        <div><b>Teléfono:</b> ${safe(d["Teléfono"])}</div>
+    </div>
 
-    <h3>Apoderado Suplente</h3>
-    <p>${safe(d["Nombre Apoderado SUPLENTE"])}</p>
+    <div class="seccion">
+        <h3>Apoderado Titular</h3>
+        <p><b>Nombre:</b> ${safe(d["Nombre Apoderado TITULAR"])}</p>
+        <p><b>RUT:</b> ${safe(d["RUT  TITULAR"])}</p>
+        <p><b>Teléfono:</b> ${safe(d["Teléfono  TITULAR"])}</p>
+        <p><b>Email:</b> ${safe(d["Correo Electrónico  TITULAR"])}</p>
+    </div>
+
+    <div class="seccion">
+        <h3>Apoderado Suplente</h3>
+        <p><b>Nombre:</b> ${safe(d["Nombre Apoderado SUPLENTE"])}</p>
+        <p><b>RUT:</b> ${safe(d["RUT SUPLENTE"])}</p>
+        <p><b>Teléfono:</b> ${safe(d["Teléfono SUPLENTE"])}</p>
+        <p><b>Email:</b> ${safe(d["Correo Electrónico SUPLENTE"])}</p>
+    </div>
 
     ${
         d["Merged Doc URL - FICHA 2026"]
@@ -262,8 +255,11 @@ function verDetalle(i){
     `;
 }
 
-function safe(t){
-    return (t||"").toString().replace(/</g,"&lt;").replace(/>/g,"&gt;");
+function safe(text){
+    if(!text) return "";
+    return text.toString()
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;");
 }
 
 document.getElementById("buscar").addEventListener("input", render);
