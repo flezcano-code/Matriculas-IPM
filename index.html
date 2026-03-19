@@ -9,8 +9,8 @@ body { font-family: Arial; background:#eef2f7; margin:0; }
 .header { background:#1e3a5f; color:white; padding:15px; }
 .container { padding:20px; }
 
-.filtros { display:flex; gap:10px; margin-bottom:15px; }
-input, select { padding:8px; }
+.filtros { margin-bottom:15px; }
+input { padding:8px; }
 
 table {
     width:100%;
@@ -48,28 +48,6 @@ button {
     grid-template-columns:repeat(2,1fr);
     gap:10px;
 }
-
-.modal {
-    display:none;
-    position:fixed;
-    top:0; left:0;
-    width:100%; height:100%;
-    background:rgba(0,0,0,0.5);
-}
-
-.modal-content {
-    background:white;
-    padding:20px;
-    margin:10% auto;
-    width:60%;
-}
-
-iframe {
-    width:100%;
-    height:500px;
-    border:none;
-    margin-top:15px;
-}
 </style>
 </head>
 
@@ -96,10 +74,6 @@ iframe {
 </table>
 
 <div id="detalle" class="detalle"></div>
-
-<div id="modal" class="modal">
-  <div class="modal-content" id="modalContent"></div>
-</div>
 
 </div>
 
@@ -207,43 +181,50 @@ function verDetalle(i){
     </div>
 
     <br>
+
     <button onclick="verApoderado(${i})">Ver Apoderados</button>
 
-    <h4>Ficha del Estudiante</h4>
-    ${d.pdf ? `<a href="${d.pdf}" target="_blank">
-    <button>Ver PDF</button>
-</a>` : "Sin PDF"}
+    <br><br>
+
+    ${d.pdf ? `
+        <a href="${d.pdf}" target="_blank">
+            <button>Ver PDF</button>
+        </a>` : "Sin PDF"}
     `;
 }
 
 function verApoderado(i){
     const d = data[i];
 
-    const modal = document.getElementById("modal");
-    const content = document.getElementById("modalContent");
+    const contenido = `
+    <html>
+    <head>
+        <title>Apoderados</title>
+        <style>
+            body { font-family: Arial; padding:20px; }
+            h2 { color:#1e3a5f; }
+        </style>
+    </head>
+    <body>
 
-    modal.style.display = "block";
+    <h2>Apoderado Titular</h2>
+    <p><b>Nombre:</b> ${d.ap_tit || ""}</p>
+    <p><b>RUT:</b> ${d.rut_tit || ""}</p>
+    <p><b>Teléfono:</b> ${d.tel_tit || ""}</p>
+    <p><b>Email:</b> ${d.mail_tit || ""}</p>
 
-    content.innerHTML = `
-    <h3>Apoderado Titular</h3>
-    <p>${d.ap_tit || ""}</p>
-    <p>RUT: ${d.rut_tit || ""}</p>
-    <p>Tel: ${d.tel_tit || ""}</p>
-    <p>Email: ${d.mail_tit || ""}</p>
+    <h2>Apoderado Suplente</h2>
+    <p><b>Nombre:</b> ${d.ap_sup || ""}</p>
+    <p><b>RUT:</b> ${d.rut_sup || ""}</p>
+    <p><b>Teléfono:</b> ${d.tel_sup || ""}</p>
+    <p><b>Email:</b> ${d.mail_sup || ""}</p>
 
-    <h3>Apoderado Suplente</h3>
-    <p>${d.ap_sup || ""}</p>
-    <p>RUT: ${d.rut_sup || ""}</p>
-    <p>Tel: ${d.tel_sup || ""}</p>
-    <p>Email: ${d.mail_sup || ""}</p>
-
-    <br>
-    <button onclick="cerrarModal()">Cerrar</button>
+    </body>
+    </html>
     `;
-}
 
-function cerrarModal(){
-    document.getElementById("modal").style.display = "none";
+    const nuevaVentana = window.open("", "_blank", "width=600,height=600");
+    nuevaVentana.document.write(contenido);
 }
 
 document.getElementById("buscar").addEventListener("input", render);
