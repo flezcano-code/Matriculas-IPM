@@ -210,7 +210,9 @@ function verDetalle(i){
     <button onclick="verApoderado(${i})">Ver Apoderados</button>
 
     <h4>Ficha del Estudiante</h4>
-    ${d.pdf ? `<iframe src="${d.pdf.replace('/view','/preview')}"></iframe>` : "Sin PDF"}
+    ${d.pdf ? `<a href="${d.pdf}" target="_blank">
+    <button>Ver PDF</button>
+</a>` : "Sin PDF"}
     `;
 }
 
