@@ -9,7 +9,7 @@ body { font-family: Arial; background:#eef2f7; margin:0; }
 .header { background:#1e3a5f; color:white; padding:15px; }
 .container { padding:20px; }
 
-input { padding:8px; margin-bottom:15px; }
+input { padding:8px; margin-bottom:15px; width:300px; }
 
 table {
     width:100%;
@@ -32,20 +32,6 @@ button {
     color:white;
     border:none;
     cursor:pointer;
-}
-
-.detalle {
-    display:none;
-    background:white;
-    padding:20px;
-    margin-top:20px;
-    border-radius:10px;
-}
-
-.grid {
-    display:grid;
-    grid-template-columns:repeat(2,1fr);
-    gap:10px;
 }
 </style>
 </head>
@@ -70,11 +56,9 @@ button {
 <tbody id="tabla"></tbody>
 </table>
 
-<div id="detalle" class="detalle"></div>
-
 </div>
 
-<!-- LIBRERÍA CSV (CLAVE) -->
+<!-- LIBRERÍA CSV -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
 <script>
@@ -87,9 +71,7 @@ Papa.parse(URL, {
     header: true,
     skipEmptyLines: true,
     complete: function(results) {
-
         data = results.data;
-
         render();
     }
 });
@@ -178,7 +160,7 @@ function verDetalle(i){
         const contenidoApoderado = \`
         <html>
         <body style="font-family: Arial; padding:20px;">
-        
+
         <h2>Apoderado Titular</h2>
         <p><b>Nombre:</b> ${d["Nombre Apoderado TITULAR"]}</p>
         <p><b>RUT:</b> ${d["RUT  TITULAR"]}</p>
