@@ -6,31 +6,21 @@
 
 <style>
 body { font-family: Arial; background:#eef2f7; margin:0; }
-
-.header {
-    background:#1e3a5f;
-    color:white;
-    padding:15px;
-}
-
+.header { background:#1e3a5f; color:white; padding:15px; }
 .container { padding:20px; }
 
-.filtros { display:flex; gap:10px; margin-bottom:15px; }
-
-input, select { padding:8px; }
+input { padding:8px; margin-bottom:15px; }
 
 table {
     width:100%;
     background:white;
     border-collapse:collapse;
 }
-
 th {
     background:#2f3640;
     color:white;
     padding:10px;
 }
-
 td {
     padding:8px;
     border-bottom:1px solid #eee;
@@ -44,7 +34,6 @@ button {
     cursor:pointer;
 }
 
-/* DETALLE */
 .detalle {
     display:none;
     background:white;
@@ -55,31 +44,19 @@ button {
 
 .grid {
     display:grid;
-    grid-template-columns:repeat(2, 1fr);
+    grid-template-columns:repeat(2,1fr);
     gap:10px;
-}
-
-/* PDF */
-iframe {
-    width:100%;
-    height:500px;
-    border:none;
-    margin-top:15px;
 }
 </style>
 </head>
 
 <body>
 
-<div class="header">📚 Sistema Matrículas 2026</div>
+<div class="header">📚 Sistema de Matrículas 2026</div>
 
 <div class="container">
 
-<div class="filtros">
-    <input type="text" id="buscar" placeholder="Buscar alumno o RUT">
-    <select id="curso"><option value="">Curso</option></select>
-    <select id="estado"><option value="">Estado</option></select>
-</div>
+<input type="text" id="buscar" placeholder="Buscar alumno o RUT">
 
 <table>
 <thead>
@@ -93,96 +70,47 @@ iframe {
 <tbody id="tabla"></tbody>
 </table>
 
-<!-- DETALLE -->
 <div id="detalle" class="detalle"></div>
 
 </div>
+
+<!-- LIBRERÍA CSV (CLAVE) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
 <script>
 const URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSrlMaCB2BM5BjhtKoOCYZS4QJsSL7ZFPXefiDQYN4KZhyh6kyYd5wZQYOKfcueyTiM5NDOPU5_MN6E/pub?gid=0&single=true&output=csv";
 
 let data = [];
 
-// REFERENCIAS DOM (IMPORTANTE)
-const detalle = document.getElementById("detalle");
-const tabla = document.getElementById("tabla");
-const buscar = document.getElementById("buscar");
-const curso = document.getElementById("curso");
-const estado = document.getElementById("estado");
+Papa.parse(URL, {
+    download: true,
+    header: true,
+    skipEmptyLines: true,
+    complete: function(results) {
 
-fetch(URL)
-.then(r => r.text())
-.then(csv => {
+        data = results.data;
 
-    const filas = csv.split("\n");
-    const headers = filas[0].split(",");
-
-    const get = n => headers.findIndex(h => h.trim() === n);
-
-    const idx = {
-        rut: get("RUN / IPE"),
-        nacionalidad: get("Nacionalidad"),
-        nombre: get("Estudiante"),
-        social: get("Nombre Social"),
-        nacimiento: get("Fecha Nacimiento"),
-        sexo: get("Sexo"),
-        genero: get("Id. de Género"),
-        nivel: get("Nivel"),
-        curso: get("Curso"),
-        domicilio: get("Domicilio"),
-        comuna: get("Comuna"),
-        correo: get("Correo Electrónico"),
-        telefono: get("Teléfono"),
-        estado: get("Estado"),
-        pdf: get("Merged Doc URL - FICHA 2026"),
-
-        ap_tit: get("Nombre Apoderado TITULAR"),
-        rut_tit: get("RUT TITULAR"),
-        tel_tit: get("Teléfono TITULAR"),
-        mail_tit: get("Correo Electrónico TITULAR"),
-
-        ap_sup: get("Nombre Apoderado SUPLENTE"),
-        rut_sup: get("RUT SUPLENTE"),
-        tel_sup: get("Teléfono SUPLENTE"),
-        mail_sup: get("Correo Electrónico SUPLENTE")
-    };
-
-    data = filas.slice(1).map(f => {
-        const c = f.split(",");
-        let obj = {};
-        for (let k in idx) obj[k] = c[idx[k]];
-        return obj;
-    });
-
-    cargarFiltros();
-    render();
+        render();
+    }
 });
 
-function cargarFiltros(){
-    [...new Set(data.map(d => d.curso))].forEach(c => {
-        if(c) curso.innerHTML += `<option>${c}</option>`;
-    });
-    [...new Set(data.map(d => d.estado))].forEach(e => {
-        if(e) estado.innerHTML += `<option>${e}</option>`;
-    });
-}
-
 function render(){
-    const b = buscar.value.toLowerCase();
-
-    const filtrado = data.filter(d =>
-        (d.nombre || "").toLowerCase().includes(b) ||
-        (d.rut || "").includes(b)
-    );
+    const b = document.getElementById("buscar").value.toLowerCase();
+    const tabla = document.getElementById("tabla");
 
     tabla.innerHTML = "";
 
-    filtrado.forEach((d,i) => {
+    data
+    .filter(d =>
+        d["Estudiante"]?.toLowerCase().includes(b) ||
+        d["RUN / IPE"]?.includes(b)
+    )
+    .forEach((d,i) => {
         tabla.innerHTML += `
         <tr>
-            <td>${d.nombre}</td>
-            <td>${d.rut}</td>
-            <td>${d.curso}</td>
+            <td>${d["Estudiante"] || ""}</td>
+            <td>${d["RUN / IPE"] || ""}</td>
+            <td>${d["Curso"] || ""}</td>
             <td><button onclick="verDetalle(${i})">Ver</button></td>
         </tr>`;
     });
@@ -190,74 +118,72 @@ function render(){
 
 function verDetalle(i){
     const d = data[i];
+    const detalle = document.getElementById("detalle");
 
     detalle.style.display = "block";
+
     detalle.innerHTML = `
-    <h3>${d.nombre}</h3>
+    <h3>${d["Estudiante"]}</h3>
 
     <div class="grid">
-        <div><b>RUN:</b> ${d.rut}</div>
-        <div><b>Nacionalidad:</b> ${d.nacionalidad}</div>
-        <div><b>Nombre Social:</b> ${d.social}</div>
-        <div><b>Fecha Nacimiento:</b> ${d.nacimiento}</div>
-        <div><b>Sexo:</b> ${d.sexo}</div>
-        <div><b>Género:</b> ${d.genero}</div>
-        <div><b>Nivel:</b> ${d.nivel}</div>
-        <div><b>Curso:</b> ${d.curso}</div>
-        <div><b>Domicilio:</b> ${d.domicilio}</div>
-        <div><b>Comuna:</b> ${d.comuna}</div>
-        <div><b>Correo:</b> ${d.correo}</div>
-        <div><b>Teléfono:</b> ${d.telefono}</div>
+        <div><b>RUN:</b> ${d["RUN / IPE"]}</div>
+        <div><b>Nacionalidad:</b> ${d["Nacionalidad"]}</div>
+        <div><b>Nombre Social:</b> ${d["Nombre Social"]}</div>
+        <div><b>Fecha Nacimiento:</b> ${d["Fecha Nacimiento"]}</div>
+        <div><b>Sexo:</b> ${d["Sexo"]}</div>
+        <div><b>Género:</b> ${d["Id. de Género"]}</div>
+        <div><b>Nivel:</b> ${d["Nivel"]}</div>
+        <div><b>Curso:</b> ${d["Curso"]}</div>
+        <div><b>Domicilio:</b> ${d["Domicilio"]}</div>
+        <div><b>Comuna:</b> ${d["Comuna"]}</div>
+        <div><b>Correo:</b> ${d["Correo Electrónico"]}</div>
+        <div><b>Teléfono:</b> ${d["Teléfono"]}</div>
     </div>
 
     <br>
+
     <button onclick="verApoderado(${i})">Ver Apoderados</button>
 
-    <h4>Ficha del Estudiante</h4>
-    <iframe src="${d.pdf}"></iframe>
+    <br><br>
+
+    ${
+        d["Merged Doc URL - FICHA 2026"]
+        ? `<a href="${d["Merged Doc URL - FICHA 2026"]}" target="_blank">
+            <button>Ver PDF</button>
+          </a>`
+        : "Sin PDF"
+    }
     `;
 }
 
 function verApoderado(i){
     const d = data[i];
 
-    const ventana = window.open("", "_blank", "width=600,height=500");
+    const contenido = `
+    <html>
+    <body style="font-family: Arial; padding:20px;">
 
-    ventana.document.write(`
-        <html>
-        <head>
-            <title>Apoderados</title>
-            <style>
-                body { font-family: Arial; padding:20px; }
-                h2 { color:#1e3a5f; }
-                h3 { margin-top:20px; }
-                p { margin:5px 0; }
-            </style>
-        </head>
-        <body>
+    <h2>Apoderado Titular</h2>
+    <p><b>Nombre:</b> ${d["Nombre Apoderado TITULAR"]}</p>
+    <p><b>RUT:</b> ${d["RUT  TITULAR"]}</p>
+    <p><b>Teléfono:</b> ${d["Teléfono  TITULAR"]}</p>
+    <p><b>Email:</b> ${d["Correo Electrónico  TITULAR"]}</p>
 
-        <h2>${d.nombre}</h2>
+    <h2>Apoderado Suplente</h2>
+    <p><b>Nombre:</b> ${d["Nombre Apoderado SUPLENTE"]}</p>
+    <p><b>RUT:</b> ${d["RUT SUPLENTE"]}</p>
+    <p><b>Teléfono:</b> ${d["Teléfono SUPLENTE"]}</p>
+    <p><b>Email:</b> ${d["Correo Electrónico SUPLENTE"]}</p>
 
-        <h3>Apoderado Titular</h3>
-        <p><b>Nombre:</b> ${d.ap_tit}</p>
-        <p><b>RUT:</b> ${d.rut_tit}</p>
-        <p><b>Teléfono:</b> ${d.tel_tit}</p>
-        <p><b>Email:</b> ${d.mail_tit}</p>
+    </body>
+    </html>
+    `;
 
-        <h3>Apoderado Suplente</h3>
-        <p><b>Nombre:</b> ${d.ap_sup}</p>
-        <p><b>RUT:</b> ${d.rut_sup}</p>
-        <p><b>Teléfono:</b> ${d.tel_sup}</p>
-        <p><b>Email:</b> ${d.mail_sup}</p>
-
-        </body>
-        </html>
-    `);
+    const w = window.open("", "_blank", "width=600,height=600");
+    w.document.write(contenido);
 }
 
-document.querySelectorAll("input, select").forEach(e =>
-    e.addEventListener("input", render)
-);
+document.getElementById("buscar").addEventListener("input", render);
 </script>
 
 </body>
