@@ -101,13 +101,11 @@ function render(){
 function verDetalle(i){
     const d = data[i];
 
-    const ventana = window.open("", "_blank", "width=800,height=700");
+    const w = window.open("", "_blank", "width=900,height=700");
 
-    ventana.document.write("<html><head><title>Ficha Alumno</title></head><body></body></html>");
+    w.document.write("<html><head><title>Ficha Alumno</title></head><body></body></html>");
 
-    const doc = ventana.document;
-
-    doc.body.innerHTML = `
+    w.document.body.innerHTML = `
     <style>
         body { font-family: Arial; padding:20px; }
         h2 { color:#1e3a5f; }
@@ -116,9 +114,14 @@ function verDetalle(i){
             grid-template-columns:repeat(2,1fr);
             gap:10px;
         }
+        .seccion {
+            margin-top:25px;
+            padding-top:10px;
+            border-top:2px solid #eee;
+        }
         button {
             padding:6px 12px;
-            margin-right:10px;
+            margin-top:15px;
             background:#2563eb;
             color:white;
             border:none;
@@ -143,9 +146,21 @@ function verDetalle(i){
         <div><b>Teléfono:</b> ${safe(d["Teléfono"])}</div>
     </div>
 
-    <br><br>
+    <div class="seccion">
+        <h3>Apoderado Titular</h3>
+        <p><b>Nombre:</b> ${safe(d["Nombre Apoderado TITULAR"])}</p>
+        <p><b>RUT:</b> ${safe(d["RUT  TITULAR"])}</p>
+        <p><b>Teléfono:</b> ${safe(d["Teléfono  TITULAR"])}</p>
+        <p><b>Email:</b> ${safe(d["Correo Electrónico  TITULAR"])}</p>
+    </div>
 
-    <button id="btnApoderado">Ver Apoderados</button>
+    <div class="seccion">
+        <h3>Apoderado Suplente</h3>
+        <p><b>Nombre:</b> ${safe(d["Nombre Apoderado SUPLENTE"])}</p>
+        <p><b>RUT:</b> ${safe(d["RUT SUPLENTE"])}</p>
+        <p><b>Teléfono:</b> ${safe(d["Teléfono SUPLENTE"])}</p>
+        <p><b>Email:</b> ${safe(d["Correo Electrónico SUPLENTE"])}</p>
+    </div>
 
     ${
         d["Merged Doc URL - FICHA 2026"]
@@ -154,37 +169,6 @@ function verDetalle(i){
           </a>`
         : ""
     }
-    `;
-
-    doc.getElementById("btnApoderado").onclick = () => {
-        verApoderado(i);
-    };
-}
-
-function verApoderado(i){
-    const d = data[i];
-
-    const w = window.open("", "_blank", "width=600,height=600");
-
-    w.document.write("<html><head><title>Apoderados</title></head><body></body></html>");
-
-    w.document.body.innerHTML = `
-    <style>
-        body { font-family: Arial; padding:20px; }
-        h2 { color:#1e3a5f; }
-    </style>
-
-    <h2>Apoderado Titular</h2>
-    <p><b>Nombre:</b> ${safe(d["Nombre Apoderado TITULAR"])}</p>
-    <p><b>RUT:</b> ${safe(d["RUT  TITULAR"])}</p>
-    <p><b>Teléfono:</b> ${safe(d["Teléfono  TITULAR"])}</p>
-    <p><b>Email:</b> ${safe(d["Correo Electrónico  TITULAR"])}</p>
-
-    <h2>Apoderado Suplente</h2>
-    <p><b>Nombre:</b> ${safe(d["Nombre Apoderado SUPLENTE"])}</p>
-    <p><b>RUT:</b> ${safe(d["RUT SUPLENTE"])}</p>
-    <p><b>Teléfono:</b> ${safe(d["Teléfono SUPLENTE"])}</p>
-    <p><b>Email:</b> ${safe(d["Correo Electrónico SUPLENTE"])}</p>
     `;
 }
 
