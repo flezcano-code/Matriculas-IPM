@@ -44,6 +44,7 @@ button {
     cursor:pointer;
 }
 
+/* DETALLE */
 .detalle {
     display:none;
     background:white;
@@ -58,6 +59,7 @@ button {
     gap:10px;
 }
 
+/* PDF */
 iframe {
     width:100%;
     height:500px;
@@ -91,6 +93,7 @@ iframe {
 <tbody id="tabla"></tbody>
 </table>
 
+<!-- DETALLE -->
 <div id="detalle" class="detalle"></div>
 
 </div>
@@ -100,6 +103,7 @@ const URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSrlMaCB2BM5BjhtKoO
 
 let data = [];
 
+// REFERENCIAS DOM (IMPORTANTE)
 const detalle = document.getElementById("detalle");
 const tabla = document.getElementById("tabla");
 const buscar = document.getElementById("buscar");
@@ -117,8 +121,18 @@ fetch(URL)
 
     const idx = {
         rut: get("RUN / IPE"),
+        nacionalidad: get("Nacionalidad"),
         nombre: get("Estudiante"),
+        social: get("Nombre Social"),
+        nacimiento: get("Fecha Nacimiento"),
+        sexo: get("Sexo"),
+        genero: get("Id. de Género"),
+        nivel: get("Nivel"),
         curso: get("Curso"),
+        domicilio: get("Domicilio"),
+        comuna: get("Comuna"),
+        correo: get("Correo Electrónico"),
+        telefono: get("Teléfono"),
         estado: get("Estado"),
         pdf: get("Merged Doc URL - FICHA 2026"),
 
@@ -174,21 +188,8 @@ function render(){
     });
 }
 
-// 🔥 FUNCIÓN PARA ARREGLAR LINK DE DRIVE
-function convertirDrive(url){
-    if(!url) return "";
-
-    const match = url.match(/\/d\/(.*?)\//);
-    if(match && match[1]){
-        return `https://drive.google.com/file/d/${match[1]}/preview`;
-    }
-    return url;
-}
-
 function verDetalle(i){
     const d = data[i];
-
-    const pdfUrl = convertirDrive(d.pdf);
 
     detalle.style.display = "block";
     detalle.innerHTML = `
@@ -196,14 +197,24 @@ function verDetalle(i){
 
     <div class="grid">
         <div><b>RUN:</b> ${d.rut}</div>
+        <div><b>Nacionalidad:</b> ${d.nacionalidad}</div>
+        <div><b>Nombre Social:</b> ${d.social}</div>
+        <div><b>Fecha Nacimiento:</b> ${d.nacimiento}</div>
+        <div><b>Sexo:</b> ${d.sexo}</div>
+        <div><b>Género:</b> ${d.genero}</div>
+        <div><b>Nivel:</b> ${d.nivel}</div>
         <div><b>Curso:</b> ${d.curso}</div>
+        <div><b>Domicilio:</b> ${d.domicilio}</div>
+        <div><b>Comuna:</b> ${d.comuna}</div>
+        <div><b>Correo:</b> ${d.correo}</div>
+        <div><b>Teléfono:</b> ${d.telefono}</div>
     </div>
 
     <br>
     <button onclick="verApoderado(${i})">Ver Apoderados</button>
 
     <h4>Ficha del Estudiante</h4>
-    ${pdfUrl ? `<iframe src="${pdfUrl}"></iframe>` : `<p>No disponible</p>`}
+    <iframe src="${d.pdf}"></iframe>
     `;
 }
 
@@ -219,6 +230,8 @@ function verApoderado(i){
             <style>
                 body { font-family: Arial; padding:20px; }
                 h2 { color:#1e3a5f; }
+                h3 { margin-top:20px; }
+                p { margin:5px 0; }
             </style>
         </head>
         <body>
