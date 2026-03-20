@@ -7,6 +7,7 @@
 <style>
 body { font-family: Arial; background:#eef2f7; margin:0; }
 
+/* HEADER */
 .header {
     background:#0b6b2e;
     color:white;
@@ -56,7 +57,7 @@ table {
     border-collapse:collapse;
 }
 th {
-    background:#14532d; /* verde oscuro */
+    background:#14532d;
     color:white;
     padding:10px;
 }
@@ -83,13 +84,11 @@ button:hover {
 
 <div class="header">
 
-    <!-- IZQUIERDA -->
     <div class="header-left">
         <img src="logo.png" class="logo">
         <div class="titulo">Sistema de Matrículas 2026</div>
     </div>
 
-    <!-- DERECHA -->
     <img src="logo2.png" class="logo">
 
 </div>
@@ -111,7 +110,7 @@ button:hover {
 <th>Estudiante</th>
 <th>RUN</th>
 <th>Curso</th>
-<th>Acción</th>
+<th>Revisión</th>
 </tr>
 </thead>
 <tbody id="tabla"></tbody>
@@ -140,7 +139,6 @@ Papa.parse(URL, {
 
 function cargarCursos(){
     const select = document.getElementById("filtroCurso");
-
     const cursos = [...new Set(data.map(d => d["Curso"]).filter(Boolean))];
 
     cursos.sort().forEach(curso => {
@@ -176,7 +174,7 @@ function render(){
             <td>${safe(d["Estudiante"])}</td>
             <td>${safe(d["RUN / IPE"])}</td>
             <td>${safe(d["Curso"])}</td>
-            <td><button onclick="verDetalle(${i})">Ver</button></td>
+            <td><button onclick="verDetalle(${i})">Review</button></td>
         </tr>`;
     });
 }
@@ -184,9 +182,13 @@ function render(){
 function verDetalle(i){
     const d = data[i];
 
-    const w = window.open("", "_blank", "width=900,height=700");
+    const w = window.open("", "_blank", "width=1000,height=800");
 
     w.document.write("<html><head><title>Ficha Alumno</title></head><body></body></html>");
+
+    const pdfUrl = d["Merged Doc URL - FICHA 2026"]
+        ? d["Merged Doc URL - FICHA 2026"].replace("/view", "/preview")
+        : "";
 
     w.document.body.innerHTML = `
     <style>
@@ -201,14 +203,6 @@ function verDetalle(i){
             margin-top:25px;
             padding-top:10px;
             border-top:2px solid #eee;
-        }
-        button {
-            padding:6px 12px;
-            margin-top:15px;
-            background:#15803d;
-            color:white;
-            border:none;
-            cursor:pointer;
         }
     </style>
 
@@ -246,10 +240,13 @@ function verDetalle(i){
     </div>
 
     ${
-        d["Merged Doc URL - FICHA 2026"]
-        ? `<a href="${d["Merged Doc URL - FICHA 2026"]}" target="_blank">
-            <button>Ver PDF</button>
-          </a>`
+        pdfUrl
+        ? `
+        <div class="seccion">
+            <h3>Ficha del Alumno</h3>
+            <iframe src="${pdfUrl}" width="100%" height="500"></iframe>
+        </div>
+        `
         : ""
     }
     `;
