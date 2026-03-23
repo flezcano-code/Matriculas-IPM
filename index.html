@@ -23,9 +23,7 @@ body { font-family: Arial; background:#eef2f7; margin:0; }
     gap:15px;
 }
 
-.logo {
-    height:70px;
-}
+.logo { height:70px; }
 
 .titulo {
     font-size:22px;
@@ -41,9 +39,7 @@ body { font-family: Arial; background:#eef2f7; margin:0; }
     margin-bottom:15px;
 }
 
-input, select {
-    padding:8px;
-}
+input, select { padding:8px; }
 
 .contador {
     margin-bottom:10px;
@@ -77,20 +73,26 @@ button {
 button:hover {
     background:#166534;
 }
+
+/* PAGINACIÓN */
+#paginacion {
+    margin-top:15px;
+}
+#paginacion button {
+    margin-right:5px;
+    margin-top:5px;
+}
 </style>
 </head>
 
 <body>
 
 <div class="header">
-
     <div class="header-left">
         <img src="logo.png" class="logo">
         <div class="titulo">Sistema de Matrículas 2026</div>
     </div>
-
     <img src="logo2.png" class="logo">
-
 </div>
 
 <div class="container">
@@ -116,6 +118,8 @@ button:hover {
 <tbody id="tabla"></tbody>
 </table>
 
+<div id="paginacion"></div>
+
 </div>
 
 <!-- PapaParse -->
@@ -125,6 +129,9 @@ button:hover {
 const URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSrlMaCB2BM5BjhtKoOCYZS4QJsSL7ZFPXefiDQYN4KZhyh6kyYd5wZQYOKfcueyTiM5NDOPU5_MN6E/pub?gid=0&single=true&output=csv";
 
 let data = [];
+let pagina = 1;
+const porPagina = 20;
+let timeout;
 
 Papa.parse(URL, {
     download: true,
@@ -166,17 +173,42 @@ function render(){
     document.getElementById("contador").innerText =
         "Total alumnos: " + filtrado.length;
 
+    const inicio = (pagina - 1) * porPagina;
+    const fin = inicio + porPagina;
+    const paginaDatos = filtrado.slice(inicio, fin);
+
     tabla.innerHTML = "";
 
-    filtrado.forEach((d,i) => {
+    paginaDatos.forEach(d => {
+        const realIndex = data.indexOf(d);
+
         tabla.innerHTML += `
         <tr>
             <td>${safe(d["Estudiante"])}</td>
             <td>${safe(d["RUN / IPE"])}</td>
             <td>${safe(d["Curso"])}</td>
-            <td><button onclick="verDetalle(${i})">Review</button></td>
+            <td><button onclick="verDetalle(${realIndex})">Review</button></td>
         </tr>`;
     });
+
+    renderPaginacion(filtrado.length);
+}
+
+function renderPaginacion(total){
+    const totalPaginas = Math.ceil(total / porPagina);
+    const cont = document.getElementById("paginacion");
+
+    cont.innerHTML = "";
+
+    for(let i = 1; i <= totalPaginas; i++){
+        cont.innerHTML += `
+        <button onclick="irPagina(${i})">${i}</button>`;
+    }
+}
+
+function irPagina(p){
+    pagina = p;
+    render();
 }
 
 function verDetalle(i){
@@ -184,69 +216,28 @@ function verDetalle(i){
 
     const w = window.open("", "_blank", "width=1000,height=800");
 
-    w.document.write("<html><head><title>Ficha Alumno</title></head><body></body></html>");
-
     const pdfUrl = d["Merged Doc URL - FICHA 2026"]
         ? d["Merged Doc URL - FICHA 2026"].replace("/view", "/preview")
         : "";
 
+    w.document.write("<html><body style='font-family:Arial;padding:20px'></body></html>");
+
     w.document.body.innerHTML = `
-    <style>
-        body { font-family: Arial; padding:20px; }
-        h2 { color:#0b6b2e; }
-        .grid {
-            display:grid;
-            grid-template-columns:repeat(2,1fr);
-            gap:10px;
-        }
-        .seccion {
-            margin-top:25px;
-            padding-top:10px;
-            border-top:2px solid #eee;
-        }
-    </style>
+    <h2 style="color:#0b6b2e">${safe(d["Estudiante"])}</h2>
 
-    <h2>${safe(d["Estudiante"])}</h2>
+    <p><b>RUN:</b> ${safe(d["RUN / IPE"])}</p>
+    <p><b>Curso:</b> ${safe(d["Curso"])}</p>
 
-    <div class="grid">
-        <div><b>RUN:</b> ${safe(d["RUN / IPE"])}</div>
-        <div><b>Nacionalidad:</b> ${safe(d["Nacionalidad"])}</div>
-        <div><b>Nombre Social:</b> ${safe(d["Nombre Social"])}</div>
-        <div><b>Fecha Nacimiento:</b> ${safe(d["Fecha Nacimiento"])}</div>
-        <div><b>Sexo:</b> ${safe(d["Sexo"])}</div>
-        <div><b>Género:</b> ${safe(d["Id. de Género"])}</div>
-        <div><b>Nivel:</b> ${safe(d["Nivel"])}</div>
-        <div><b>Curso:</b> ${safe(d["Curso"])}</div>
-        <div><b>Domicilio:</b> ${safe(d["Domicilio"])}</div>
-        <div><b>Comuna:</b> ${safe(d["Comuna"])}</div>
-        <div><b>Correo:</b> ${safe(d["Correo Electrónico"])}</div>
-        <div><b>Teléfono:</b> ${safe(d["Teléfono"])}</div>
-    </div>
+    <h3>Apoderado Titular</h3>
+    <p>${safe(d["Nombre Apoderado TITULAR"])}</p>
 
-    <div class="seccion">
-        <h3>Apoderado Titular</h3>
-        <p><b>Nombre:</b> ${safe(d["Nombre Apoderado TITULAR"])}</p>
-        <p><b>RUT:</b> ${safe(d["RUT  TITULAR"])}</p>
-        <p><b>Teléfono:</b> ${safe(d["Teléfono  TITULAR"])}</p>
-        <p><b>Email:</b> ${safe(d["Correo Electrónico  TITULAR"])}</p>
-    </div>
-
-    <div class="seccion">
-        <h3>Apoderado Suplente</h3>
-        <p><b>Nombre:</b> ${safe(d["Nombre Apoderado SUPLENTE"])}</p>
-        <p><b>RUT:</b> ${safe(d["RUT SUPLENTE"])}</p>
-        <p><b>Teléfono:</b> ${safe(d["Teléfono SUPLENTE"])}</p>
-        <p><b>Email:</b> ${safe(d["Correo Electrónico SUPLENTE"])}</p>
-    </div>
+    <h3>Apoderado Suplente</h3>
+    <p>${safe(d["Nombre Apoderado SUPLENTE"])}</p>
 
     ${
         pdfUrl
-        ? `
-        <div class="seccion">
-            <h3>Ficha del Alumno</h3>
-            <iframe src="${pdfUrl}" width="100%" height="500"></iframe>
-        </div>
-        `
+        ? `<h3>Ficha</h3>
+           <iframe src="${pdfUrl}" width="100%" height="500"></iframe>`
         : ""
     }
     `;
@@ -259,8 +250,19 @@ function safe(text){
         .replace(/>/g,"&gt;");
 }
 
-document.getElementById("buscar").addEventListener("input", render);
-document.getElementById("filtroCurso").addEventListener("change", render);
+/* BUSCADOR OPTIMIZADO */
+document.getElementById("buscar").addEventListener("input", () => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => {
+        pagina = 1;
+        render();
+    }, 300);
+});
+
+document.getElementById("filtroCurso").addEventListener("change", () => {
+    pagina = 1;
+    render();
+});
 </script>
 
 </body>
