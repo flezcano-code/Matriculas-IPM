@@ -224,24 +224,79 @@ function verDetalle(i){
         ? d["Merged Doc URL - FICHA 2026"].replace("/view", "/preview")
         : "";
 
-    w.document.write("<html><body style='font-family:Arial;padding:20px'></body></html>");
+    w.document.write("<html><head><title>Ficha Alumno</title></head><body></body></html>");
 
     w.document.body.innerHTML = `
-    <h2 style="color:#0b6b2e">${safe(d["Estudiante"])}</h2>
+    <style>
+        body { font-family: Arial; padding:20px; }
+        h2 { color:#0b6b2e; margin-bottom:10px; }
 
-    <p><b>RUN:</b> ${safe(d["RUN / IPE"])}</p>
-    <p><b>Curso:</b> ${safe(d["Curso"])}</p>
+        .grid {
+            display:grid;
+            grid-template-columns:repeat(2,1fr);
+            gap:10px;
+            margin-top:10px;
+        }
 
-    <h3>Apoderado Titular</h3>
-    <p>${safe(d["Nombre Apoderado TITULAR"])}</p>
+        .card {
+            background:#f9fafb;
+            padding:10px;
+            border-radius:6px;
+        }
 
-    <h3>Apoderado Suplente</h3>
-    <p>${safe(d["Nombre Apoderado SUPLENTE"])}</p>
+        .seccion {
+            margin-top:25px;
+            padding-top:10px;
+            border-top:2px solid #ddd;
+        }
+    </style>
+
+    <h2>${safe(d["Estudiante"])}</h2>
+
+    <div class="grid">
+        <div class="card"><b>RUN:</b><br>${safe(d["RUN / IPE"])}</div>
+        <div class="card"><b>Nacionalidad:</b><br>${safe(d["Nacionalidad"])}</div>
+        <div class="card"><b>Nombre Social:</b><br>${safe(d["Nombre Social"])}</div>
+        <div class="card"><b>Fecha Nacimiento:</b><br>${safe(d["Fecha Nacimiento"])}</div>
+        <div class="card"><b>Sexo:</b><br>${safe(d["Sexo"])}</div>
+        <div class="card"><b>Género:</b><br>${safe(d["Id. de Género"])}</div>
+        <div class="card"><b>Nivel:</b><br>${safe(d["Nivel"])}</div>
+        <div class="card"><b>Curso:</b><br>${safe(d["Curso"])}</div>
+        <div class="card"><b>Domicilio:</b><br>${safe(d["Domicilio"])}</div>
+        <div class="card"><b>Comuna:</b><br>${safe(d["Comuna"])}</div>
+        <div class="card"><b>Correo:</b><br>${safe(d["Correo Electrónico"])}</div>
+        <div class="card"><b>Teléfono:</b><br>${safe(d["Teléfono"])}</div>
+    </div>
+
+    <div class="seccion">
+        <h3>Apoderado Titular</h3>
+        <div class="grid">
+            <div class="card"><b>Nombre:</b><br>${safe(d["Nombre Apoderado TITULAR"])}</div>
+            <div class="card"><b>RUT:</b><br>${safe(d["RUT  TITULAR"])}</div>
+            <div class="card"><b>Teléfono:</b><br>${safe(d["Teléfono  TITULAR"])}</div>
+            <div class="card"><b>Nivel Educacional:</b><br>${safe(d["Nivel Educacional TITULAR"])}</div>
+            <div class="card"><b>Email:</b><br>${safe(d["Correo Electrónico  TITULAR"])}</div>
+        </div>
+    </div>
+
+    <div class="seccion">
+        <h3>Apoderado Suplente</h3>
+        <div class="grid">
+            <div class="card"><b>Nombre:</b><br>${safe(d["Nombre Apoderado SUPLENTE"])}</div>
+            <div class="card"><b>RUT:</b><br>${safe(d["RUT SUPLENTE"])}</div>
+            <div class="card"><b>Teléfono:</b><br>${safe(d["Teléfono SUPLENTE"])}</div>
+            <div class="card"><b>Email:</b><br>${safe(d["Correo Electrónico SUPLENTE"])}</div>
+        </div>
+    </div>
 
     ${
         pdfUrl
-        ? `<h3>Ficha</h3>
-           <iframe src="${pdfUrl}" width="100%" height="500"></iframe>`
+        ? `
+        <div class="seccion">
+            <h3>Ficha del Alumno</h3>
+            <iframe src="${pdfUrl}" width="100%" height="500"></iframe>
+        </div>
+        `
         : ""
     }
     `;
