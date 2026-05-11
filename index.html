@@ -5,7 +5,11 @@
 <title>Sistema Matrículas</title>
 
 <style>
-body { font-family: Arial; background:#eef2f7; margin:0; }
+body {
+    font-family: Arial;
+    background:#eef2f7;
+    margin:0;
+}
 
 /* HEADER */
 .header {
@@ -23,7 +27,9 @@ body { font-family: Arial; background:#eef2f7; margin:0; }
     gap:15px;
 }
 
-.logo { height:70px; }
+.logo {
+    height:70px;
+}
 
 .titulo {
     font-size:22px;
@@ -31,15 +37,20 @@ body { font-family: Arial; background:#eef2f7; margin:0; }
 }
 
 /* CONTENIDO */
-.container { padding:20px; }
+.container {
+    padding:20px;
+}
 
 .filtros {
     display:flex;
     gap:10px;
     margin-bottom:15px;
+    flex-wrap:wrap;
 }
 
-input, select { padding:8px; }
+input, select {
+    padding:8px;
+}
 
 .contador {
     margin-bottom:10px;
@@ -52,11 +63,13 @@ table {
     background:white;
     border-collapse:collapse;
 }
+
 th {
     background:#14532d;
     color:white;
     padding:10px;
 }
+
 td {
     padding:8px;
     border-bottom:1px solid #eee;
@@ -69,7 +82,9 @@ button {
     color:white;
     border:none;
     cursor:pointer;
+    margin-right:5px;
 }
+
 button:hover {
     background:#166534;
 }
@@ -78,8 +93,22 @@ button:hover {
 #paginacion {
     margin-top:15px;
 }
+
 #paginacion button {
     margin-right:5px;
+    margin-top:5px;
+}
+
+@media(max-width:700px){
+
+    table{
+        font-size:13px;
+    }
+
+    .logo{
+        height:50px;
+    }
+
 }
 </style>
 </head>
@@ -87,78 +116,151 @@ button:hover {
 <body>
 
 <div class="header">
+
     <div class="header-left">
         <img src="logo.png" class="logo">
-        <div class="titulo">Sistema de Matrículas 2026</div>
+
+        <div class="titulo">
+            Sistema de Matrículas 2026
+        </div>
     </div>
+
     <img src="logo2.png" class="logo">
+
 </div>
 
 <div class="container">
 
-<div class="filtros">
-    <input type="text" id="buscar" placeholder="Buscar alumno o RUN">
-    <select id="filtroCurso">
-        <option value="">Todos los cursos</option>
-    </select>
-</div>
+    <div class="filtros">
 
-<div class="contador" id="contador"></div>
+        <input
+            type="text"
+            id="buscar"
+            placeholder="Buscar alumno o RUN"
+        >
 
-<table>
-<thead>
-<tr>
-<th>Estudiante</th>
-<th>RUN</th>
-<th>Curso</th>
-<th>Revisión</th>
-</tr>
-</thead>
-<tbody id="tabla"></tbody>
-</table>
+        <select id="filtroCurso">
+            <option value="">Todos los cursos</option>
+        </select>
 
-<div id="paginacion"></div>
+    </div>
+
+    <div class="contador" id="contador"></div>
+
+    <table>
+
+        <thead>
+            <tr>
+                <th>Estudiante</th>
+                <th>RUN</th>
+                <th>Curso</th>
+                <th>Revisión</th>
+            </tr>
+        </thead>
+
+        <tbody id="tabla"></tbody>
+
+    </table>
+
+    <div id="paginacion"></div>
 
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
 <script>
-const URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSrlMaCB2BM5BjhtKoOCYZS4QJsSL7ZFPXefiDQYN4KZhyh6kyYd5wZQYOKfcueyTiM5NDOPU5_MN6E/pub?gid=0&single=true&output=csv";
+
+/* CSV ALUMNOS */
+const URL =
+"https://docs.google.com/spreadsheets/d/1GSzXCiP3tCexOFUqXXJPzHNGR5BAjjRX5e3FcYQnWDs/gviz/tq?tqx=out:csv&gid=0";
+
+/* CSV LOGIN */
+const LOGIN_URL =
+"https://docs.google.com/spreadsheets/d/1GSzXCiP3tCexOFUqXXJPzHNGR5BAjjRX5e3FcYQnWDs/gviz/tq?tqx=out:csv&gid=763610446";
 
 let data = [];
+let loginData = [];
+
 let pagina = 1;
 const porPagina = 20;
 
+/* CARGAR ALUMNOS */
 Papa.parse(URL, {
+
     download: true,
     header: true,
     skipEmptyLines: true,
+
     complete: function(results) {
+
         data = results.data;
+
         cargarCursos();
+
         render();
     }
 });
 
+/* CARGAR LOGIN */
+Papa.parse(LOGIN_URL, {
+
+    download: true,
+    header: true,
+    skipEmptyLines: true,
+
+    complete: function(results) {
+
+        loginData = results.data;
+    }
+});
+
+/* CURSOS */
 function cargarCursos(){
-    const select = document.getElementById("filtroCurso");
-    const cursos = [...new Set(data.map(d => d["Curso"]).filter(Boolean))];
+
+    const select =
+        document.getElementById("filtroCurso");
+
+    const cursos =
+        [...new Set(
+            data.map(d => d["Curso"]).filter(Boolean)
+        )];
 
     cursos.sort().forEach(curso => {
-        select.innerHTML += `<option value="${curso}">${curso}</option>`;
+
+        select.innerHTML += `
+        <option value="${curso}">
+            ${curso}
+        </option>`;
     });
 }
 
+/* RENDER */
 function render(){
-    const b = document.getElementById("buscar").value.toLowerCase();
-    const cursoFiltro = document.getElementById("filtroCurso").value;
-    const tabla = document.getElementById("tabla");
+
+    const b =
+        document.getElementById("buscar")
+        .value
+        .toLowerCase();
+
+    const cursoFiltro =
+        document.getElementById("filtroCurso")
+        .value;
+
+    const tabla =
+        document.getElementById("tabla");
 
     const filtrado = data.filter(d => {
+
         const coincideTexto =
-            (d["Estudiante"] || "").toLowerCase().includes(b) ||
-            (d["RUN / IPE"] || "").includes(b);
+
+            (d["Estudiante"] || "")
+            .toLowerCase()
+            .includes(b)
+
+            ||
+
+            (d["RUN / IPE"] || "")
+            .includes(b);
 
         const coincideCurso =
             !cursoFiltro || d["Curso"] === cursoFiltro;
@@ -173,151 +275,1213 @@ function render(){
 
     let datosMostrar;
 
+    /* CURSO COMPLETO */
     if(cursoFiltro){
-        // 🔥 CURSO → SIN PAGINACIÓN
+
         datosMostrar = filtrado;
-        document.getElementById("paginacion").innerHTML = "";
+
+        document.getElementById("paginacion")
+        .innerHTML = "";
+
     } else {
-        // 🔥 GENERAL → CON PAGINACIÓN
-        const inicio = (pagina - 1) * porPagina;
-        const fin = inicio + porPagina;
-        datosMostrar = filtrado.slice(inicio, fin);
+
+        const inicio =
+            (pagina - 1) * porPagina;
+
+        const fin =
+            inicio + porPagina;
+
+        datosMostrar =
+            filtrado.slice(inicio, fin);
 
         renderPaginacion(filtrado.length);
     }
 
     datosMostrar.forEach(d => {
+
         const realIndex = data.indexOf(d);
 
         tabla.innerHTML += `
         <tr>
+
             <td>${safe(d["Estudiante"])}</td>
+
             <td>${safe(d["RUN / IPE"])}</td>
+
             <td>${safe(d["Curso"])}</td>
-            <td><button onclick="verDetalle(${realIndex})">Review</button></td>
+
+            <td>
+
+                <button onclick="verDetalle(${realIndex})">
+                    Review
+                </button>
+
+                <button onclick="loginReporte(${realIndex})">
+                    Report
+                </button>
+
+            </td>
+
         </tr>`;
     });
 }
 
+/* PAGINACION */
 function renderPaginacion(total){
-    const totalPaginas = Math.ceil(total / porPagina);
-    const cont = document.getElementById("paginacion");
+
+    const totalPaginas =
+        Math.ceil(total / porPagina);
+
+    const cont =
+        document.getElementById("paginacion");
 
     cont.innerHTML = "";
 
     for(let i = 1; i <= totalPaginas; i++){
-        cont.innerHTML += `<button onclick="irPagina(${i})">${i}</button>`;
+
+        cont.innerHTML += `
+        <button onclick="irPagina(${i})">
+            ${i}
+        </button>`;
     }
 }
 
 function irPagina(p){
+
     pagina = p;
+
     render();
 }
 
+/* REVIEW */
 function verDetalle(i){
+
     const d = data[i];
 
-    const w = window.open("", "_blank", "width=1000,height=800");
+    const pdfUrl =
+        d["Merged Doc URL - FICHA 2026"]
 
-    const pdfUrl = d["Merged Doc URL - FICHA 2026"]
-        ? d["Merged Doc URL - FICHA 2026"].replace("/view", "/preview")
-        : "";
+        ?
 
-    w.document.write("<html><head><title>Ficha Alumno</title></head><body></body></html>");
+        d["Merged Doc URL - FICHA 2026"]
+        .replace("/view", "/preview")
 
-    w.document.body.innerHTML = `
+        :
+
+        "";
+
+
+    const w = window.open(
+        "",
+        "_blank",
+        "width=1200,height=900"
+    );
+
+    w.document.write(`
+
+    <html>
+
+    <head>
+
+    <title>Ficha Alumno</title>
+
     <style>
-        body { font-family: Arial; padding:20px; }
-        h2 { color:#0b6b2e; margin-bottom:10px; }
 
-        .grid {
-            display:grid;
-            grid-template-columns:repeat(2,1fr);
-            gap:10px;
-            margin-top:10px;
-        }
+    body{
+        font-family:Arial;
+        padding:20px;
+    }
 
-        .card {
-            background:#f9fafb;
-            padding:10px;
-            border-radius:6px;
-        }
+    h2{
+        color:#0b6b2e;
+        margin-bottom:10px;
+    }
 
-        .seccion {
-            margin-top:25px;
-            padding-top:10px;
-            border-top:2px solid #ddd;
-        }
+    .grid{
+        display:grid;
+        grid-template-columns:repeat(2,1fr);
+        gap:10px;
+        margin-top:10px;
+    }
+
+    .card{
+        background:#f9fafb;
+        padding:10px;
+        border-radius:6px;
+        border:1px solid #ddd;
+    }
+
+    .seccion{
+        margin-top:25px;
+        padding-top:10px;
+        border-top:2px solid #ddd;
+    }
+
+    iframe{
+        border:none;
+    }
+
     </style>
+
+    </head>
+
+    <body>
 
     <h2>${safe(d["Estudiante"])}</h2>
 
     <div class="grid">
+
         <div class="card"><b>RUN:</b><br>${safe(d["RUN / IPE"])}</div>
+
         <div class="card"><b>Nacionalidad:</b><br>${safe(d["Nacionalidad"])}</div>
+
         <div class="card"><b>Nombre Social:</b><br>${safe(d["Nombre Social"])}</div>
+
         <div class="card"><b>Fecha Nacimiento:</b><br>${safe(d["Fecha Nacimiento"])}</div>
+
         <div class="card"><b>Sexo:</b><br>${safe(d["Sexo"])}</div>
+
         <div class="card"><b>Género:</b><br>${safe(d["Id. de Género"])}</div>
+
         <div class="card"><b>Nivel:</b><br>${safe(d["Nivel"])}</div>
+
         <div class="card"><b>Curso:</b><br>${safe(d["Curso"])}</div>
+
         <div class="card"><b>Domicilio:</b><br>${safe(d["Domicilio"])}</div>
+
         <div class="card"><b>Comuna:</b><br>${safe(d["Comuna"])}</div>
+
         <div class="card"><b>Correo:</b><br>${safe(d["Correo Electrónico"])}</div>
+
         <div class="card"><b>Teléfono:</b><br>${safe(d["Teléfono"])}</div>
+
     </div>
 
     <div class="seccion">
+
         <h3>Apoderado Titular</h3>
+
         <div class="grid">
+
             <div class="card"><b>Nombre:</b><br>${safe(d["Nombre Apoderado TITULAR"])}</div>
+
             <div class="card"><b>RUT:</b><br>${safe(d["RUT  TITULAR"])}</div>
+
             <div class="card"><b>Teléfono:</b><br>${safe(d["Teléfono  TITULAR"])}</div>
+
             <div class="card"><b>Nivel Educacional:</b><br>${safe(d["Nivel Educacional TITULAR"])}</div>
+
             <div class="card"><b>Email:</b><br>${safe(d["Correo Electrónico  TITULAR"])}</div>
+
         </div>
+
     </div>
 
     <div class="seccion">
+
         <h3>Apoderado Suplente</h3>
+
         <div class="grid">
+
             <div class="card"><b>Nombre:</b><br>${safe(d["Nombre Apoderado SUPLENTE"])}</div>
+
             <div class="card"><b>RUT:</b><br>${safe(d["RUT SUPLENTE"])}</div>
+
             <div class="card"><b>Teléfono:</b><br>${safe(d["Teléfono SUPLENTE"])}</div>
+
             <div class="card"><b>Email:</b><br>${safe(d["Correo Electrónico SUPLENTE"])}</div>
+
         </div>
+
     </div>
 
     ${
         pdfUrl
-        ? `
+        ?
+        `
         <div class="seccion">
+
             <h3>Ficha del Alumno</h3>
-            <iframe src="${pdfUrl}" width="100%" height="500"></iframe>
+
+            <iframe
+                src="${pdfUrl}"
+                width="100%"
+                height="600">
+            </iframe>
+
         </div>
         `
-        : ""
+        :
+        ""
     }
-    `;
+
+    </body>
+
+    </html>
+    `);
 }
 
+/* LOGIN */
+function loginReporte(i){
+
+    const usuario = prompt("Usuario:");
+
+    if(usuario === null) return;
+
+    const password = prompt("Contraseña:");
+
+    if(password === null) return;
+
+    const valido = loginData.find(l =>
+
+        String(l["usuario"]).trim() === usuario.trim()
+        &&
+        String(l["contraseña"]).trim() === password.trim()
+    );
+
+    if(!valido){
+
+        alert("Credenciales incorrectas");
+
+        return;
+    }
+
+    abrirReporte(i);
+}
+
+/* ============================================================
+   REPORTE — Declaración Individual de Accidente Escolar (DIAE)
+   Réplica fiel del formulario oficial del Ministerio de Educación
+   ============================================================ */
+function abrirReporte(i){
+
+    const d = data[i];
+
+    const ahora = new Date();
+
+    const anio  = String(ahora.getFullYear()).slice(-2); // "26"
+    const mes   = String(ahora.getMonth()+1).padStart(2,'0');
+    const dia   = String(ahora.getDate()).padStart(2,'0');
+    const hora  = String(ahora.getHours()).padStart(2,'0');
+    const mins  = String(ahora.getMinutes()).padStart(2,'0');
+
+/* =========================================================
+   DÍA DE LA SEMANA
+========================================================= */
+
+const diaSemanaNumero = (() => {
+
+    const jsDay = ahora.getDay();
+
+    switch(jsDay){
+
+        case 1: return "1";
+        case 2: return "2";
+        case 3: return "3";
+        case 4: return "4";
+        case 5: return "5";
+        case 6: return "6";
+        case 0: return "7";
+    }
+
+    return "";
+
+})();
+    
+    /* Descomponer nombre del alumno en apellidos + nombres */
+    /* Formato esperado en la planilla: "APELLIDO1 APELLIDO2, NOMBRES" o "NOMBRES APELLIDO1 APELLIDO2" */
+    /* Intentamos separar por coma; si no hay coma dejamos todo en nombres */
+    /* =========================================================
+   DATOS REALES DESDE CSV
+========================================================= */
+
+/* Nombre alumno */
+const estudianteRaw =
+    d["Estudiante"]
+    || d["Alumno"]
+    || "";
+
+/* =========================================================
+   SEPARAR NOMBRES Y APELLIDOS
+   FORMATO:
+   Alison Arira Letelier Nuñez
+========================================================= */
+
+let apPaterno = "";
+let apMaterno = "";
+let nombres = "";
+
+const partesNombre =
+    estudianteRaw
+    .trim()
+    .split(/\s+/);
+
+if(partesNombre.length >= 4){
+
+    apPaterno =
+        partesNombre[2] || "";
+
+    apMaterno =
+        partesNombre[3] || "";
+
+    nombres =
+        partesNombre[0] + " " + partesNombre[1];
+
+}
+else if(partesNombre.length === 3){
+
+    nombres =
+        partesNombre[0];
+
+    apPaterno =
+        partesNombre[1];
+
+    apMaterno =
+        partesNombre[2];
+
+}
+else{
+
+    nombres = estudianteRaw;
+}
+
+/* =========================================================
+   FECHA NACIMIENTO
+========================================================= */
+
+const fnRaw =
+    d["Fecha Nacimiento"]
+    || d["Fecha nacimiento"]
+    || "";
+
+/* =========================================================
+   SEXO
+========================================================= */
+
+const sexoTexto =
+    (
+        d["Sexo"]
+        || d["sexo"]
+        || d["Género"]
+        || d["Genero"]
+        || ""
+    )
+    .toString()
+    .toLowerCase();
+
+let sexoCod = "";
+
+if(
+    sexoTexto.includes("f")
+    ||
+    sexoTexto.includes("mujer")
+){
+
+    sexoCod = "2";
+
+}
+else if(
+    sexoTexto.includes("m")
+    ||
+    sexoTexto.includes("hombre")
+){
+
+    sexoCod = "1";
+}
+
+/* =========================================================
+   DOMICILIO
+========================================================= */
+const domicilioCompleto =
+    d["Domicilio"]
+    || d["Dirección"]
+    || "";
+    
+let calle = domicilioCompleto;
+let numeroDireccion = "";
+
+const matchNumero = domicilioCompleto.match(/(.*?)(\d+.*)$/);
+
+if(matchNumero){
+
+    calle = matchNumero[1].trim();
+    numeroDireccion = matchNumero[2].trim();
+}
+
+/* =========================================================
+   COMUNA
+========================================================= */
+
+const comunaAlumno =
+    d["Comuna"]
+    || d["Ciudad"]
+    || "Copiapó";
+
+/* =========================================================
+   EDAD AUTOMÁTICA
+========================================================= */
+
+let edad = "";
+
+if(fnRaw){
+
+    let fn;
+
+    if(fnRaw.includes("-")){
+
+        const p = fnRaw.split("-");
+
+        fn = new Date(
+            p[2],
+            p[1]-1,
+            p[0]
+        );
+
+    } else {
+
+        fn = new Date(fnRaw);
+    }
+
+    if(!isNaN(fn)){
+
+        const hoy = new Date();
+
+        edad =
+            hoy.getFullYear()
+            - fn.getFullYear();
+
+        const m =
+            hoy.getMonth()
+            - fn.getMonth();
+
+        if(
+            m < 0
+            ||
+            (
+                m === 0
+                &&
+                hoy.getDate() < fn.getDate()
+            )
+        ){
+            edad--;
+        }
+    }
+}
+
+/* =========================================================
+   FECHA NACIMIENTO SEPARADA
+========================================================= */
+
+let fnDia = "";
+let fnMes = "";
+let fnAnioFull = "";
+
+if(fnRaw.includes("-")){
+
+    const p = fnRaw.split("-");
+
+    fnDia = p[0] || "";
+    fnMes = p[1] || "";
+    fnAnioFull = p[2] || "";
+}
+
+/* =========================================================
+   RUN
+========================================================= */
+
+const runRaw =
+    d["RUN / IPE"]
+    || d["RUN"]
+    || "";
+
+const runClean =
+    runRaw
+    .replace(/\./g,"")
+    .replace("-","");
+
+/* =========================================================
+   FIN BLOQUE DATOS
+========================================================= */
+
+    /* Helper: crea una casilla tipo cuadrado con un carácter */
+function box(val, w){
+
+    w = w || "22px";
+
+    return `
+    <span
+        contenteditable="true"
+        spellcheck="false"
+        style="
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            width:${w};
+            height:22px;
+            border:1px solid black;
+            text-align:center;
+            font-size:11px;
+            font-family:Arial;
+            vertical-align:middle;
+            overflow:hidden;
+            white-space:nowrap;
+            outline:none;
+        "
+    >${val || ""}</span>`;
+}
+
+    /* Helper: casillas para cada carácter de un string */
+    function boxes(str, n){
+        const s = (str||"").toString().toUpperCase();
+        let out = "";
+        for(let i=0; i<n; i++){
+            out += box(s[i]||"");
+        }
+        return out;
+    }
+
+    /* Helper: campo de texto editable con línea inferior */
+    function field(val, flex){
+        flex = flex||"1";
+        return `<span style="
+            flex:${flex};
+            border-bottom:1px solid black;
+            font-size:11px;
+            padding:0 2px;
+            min-width:40px;
+            display:inline-block;
+        ">${safe(val)||"&nbsp;"}</span>`;
+    }
+
+    /* Helper: fila de etiqueta + valor con línea */
+    function labelVal(label, val){
+        return `
+        <div style="display:flex;flex-direction:column;gap:1px;">
+            <span style="font-size:9px;font-weight:bold;">${label}</span>
+            <span style="font-size:11px;border-bottom:1px solid black;min-height:16px;padding-bottom:1px;">${safe(val)||"&nbsp;"}</span>
+        </div>`;
+    }
+
+    const w = window.open("","_blank","width=1100,height=980");
+
+    w.document.write(`<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>DIAE — ${estudianteRaw}</title>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+
+  body {
+    font-family: Arial, sans-serif;
+    background: #f0f0f0;
+    padding: 20px;
+  }
+
+  .page {
+    width: 1000px;
+    margin: 0 auto;
+    background: white;
+    border: 2px solid black;
+    padding: 14px 18px;
+    font-size: 11px;
+  }
+
+  /* ---- ENCABEZADO ---- */
+  .enc {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+
+  .enc img {
+    height: 72px;
+  }
+
+.enc-titulo {
+    flex: 1;
+    text-align: center;
+    font-size: 16px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    padding-top: 10px;
+    line-height: 1.4;
+    word-break: break-word;
+}
+
+  .enc-num {
+    text-align: right;
+    font-size: 10px;
+    min-width: 140px;
+  }
+
+  .enc-num table {
+    border-collapse: collapse;
+    margin-left: auto;
+    font-size: 10px;
+  }
+
+  .enc-num table td, .enc-num table th {
+    border: 1px solid black;
+    padding: 2px 5px;
+  }
+
+  /* ---- SECCIONES ---- */
+  .sec-title {
+    font-weight: bold;
+    font-size: 12px;
+    letter-spacing: 2px;
+    border-bottom: 1px solid black;
+    padding: 3px 0;
+    margin: 8px 0 5px 0;
+  }
+
+  /* ---- GRILLAS ---- */
+  .row {
+    display: flex;
+    gap: 0;
+    border: 1px solid black;
+    border-bottom: none;
+  }
+
+  .row:last-of-type {
+    border-bottom: 1px solid black;
+  }
+
+  .cell {
+    border-right: 1px solid black;
+    padding: 4px 5px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .cell:last-child {
+    border-right: none;
+  }
+
+  .cell-label {
+    font-size: 8px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+  }
+
+.cell-val {
+    font-size: 11px;
+    border-bottom: 1px solid #555;
+    min-height: 15px;
+    padding-bottom: 1px;
+    outline: none;
+}
+
+  /* ---- ACCIDENTE ---- */
+  .acc-grid {
+    display: grid;
+    grid-template-columns: 80px 80px 60px 60px 60px 1fr;
+    border: 1px solid black;
+    border-bottom: none;
+  }
+
+  .acc-cell {
+    border-right: 1px solid black;
+    border-bottom: 1px solid black;
+    padding: 4px 5px;
+  }
+
+  .acc-cell:last-child { border-right: none; }
+
+  /* ---- DIAS ---- */
+  .dias-grid {
+    display: grid;
+    grid-template-columns: 90px 80px 80px 1fr;
+    border: 1px solid black;
+    border-top: none;
+  }
+
+  .dias-col {
+    border-right: 1px solid black;
+    padding: 4px 5px;
+    font-size: 10px;
+  }
+
+  .dias-col:last-child { border-right: none; }
+
+  /* ---- CIRCUNSTANCIA ---- */
+  .circ {
+    border: 1px solid black;
+    border-top: none;
+    padding: 5px;
+    min-height: 80px;
+  }
+
+  /* ---- NATURALEZA ---- */
+  .nat-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border: 1px solid black;
+    border-top: none;
+  }
+
+  .nat-col {
+    border-right: 1px solid black;
+    padding: 5px;
+    font-size: 10px;
+  }
+
+  .nat-col:last-child { border-right: none; }
+
+  /* ---- FIRMAS ---- */
+  .firmas {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 30px;
+    padding: 0 40px;
+  }
+
+  .firma-box {
+    text-align: center;
+    font-size: 10px;
+  }
+
+  .firma-line {
+    border-top: 1px solid black;
+    width: 200px;
+    margin: 0 auto 4px auto;
+  }
+
+  /* ---- PRINT ---- */
+  .btn-print {
+    margin: 18px auto 0 auto;
+    display: block;
+    padding: 10px 22px;
+    background: #0b6b2e;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    letter-spacing: 1px;
+  }
+
+  /* CAMPOS EDITABLES */
+[contenteditable="true"]{
+    cursor:text;
+}
+
+[contenteditable="true"]:hover{
+    background:#fffbe6;
+}
+
+[contenteditable="true"]:focus{
+    background:#fff3c4;
+}
+
+  @media print {
+    body { background: white; padding: 0; }
+    .page { border: none; }
+    .btn-print { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- ===== ENCABEZADO ===== -->
+  <div class="enc">
+
+    <img src="gob.png" alt="Ministerio de Educación">
+
+  <div class="enc-titulo">
+  D E C L A R A C I Ó N &nbsp; I N D I V I D U A L<br>
+  D E &nbsp; A C C I D E N T E &nbsp; E S C O L A R
+</div>
+
+    <div class="enc-num">
+      <table>
+        <tr>
+          <td colspan="2" style="text-align:center;font-weight:bold;">Nº &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+        </tr>
+        <tr>
+          <td>FISCAL O MUNICIPAL = 1</td>
+          <td style="text-align:center;">1</td>
+        </tr>
+        <tr>
+          <td>PARTICULAR = 2</td>
+          <td></td>
+        </tr>
+      </table>
+      <div style="margin-top:6px;font-size:9px;font-weight:bold;">R. B. DATOS</div>
+      <div style="display:flex;gap:2px;margin-top:2px;">
+        ${boxes("4189",4)}
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ===== ESTABLECIMIENTO ===== -->
+  <div class="sec-title">I N D I V I D U A L I Z A C I Ó N &nbsp; D E L &nbsp; E S T A B L E C I M I E N T O</div>
+
+  <div class="row" style="border-bottom:1px solid black;">
+
+    <div class="cell" style="flex:3;">
+      <span class="cell-label">NOMBRE ESTABLECIMIENTO</span>
+      <span class="cell-val">ESCUELA "ISABEL PEÑA MORALES"</span>
+    </div>
+
+    <div class="cell" style="flex:1.2;">
+      <span class="cell-label">CIUDAD</span>
+      <span class="cell-val">COPIAPÓ</span>
+    </div>
+
+    <div class="cell" style="flex:1.2;">
+      <span class="cell-label">COMUNA</span>
+      <span class="cell-val">COPIAPÓ</span>
+    </div>
+
+    <div class="cell" style="flex:1.5;flex-direction:row;align-items:flex-end;gap:6px;">
+      <div style="display:flex;flex-direction:column;gap:2px;flex:1;">
+        <span class="cell-label">CURSO</span>
+        <span class="cell-val">${safe(d["Curso"])}</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:2px;">
+        <span class="cell-label">HORARIO</span>
+        <span class="cell-val">Diurno</span>
+      </div>
+    </div>
+
+    <div class="cell" style="flex:1.8;">
+      <span class="cell-label">FECHA REGISTRO DE LOS DATOS</span>
+      <div style="display:flex;gap:2px;margin-top:3px;">
+        ${boxes(dia,2)}
+        ${boxes(mes,2)}
+        ${boxes("20"+anio,4)}
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ===== ACCIDENTADO ===== -->
+  <div class="sec-title">I N D I V I D U A L I Z A C I O N &nbsp; D E L &nbsp; A C C I D E N T A D O</div>
+
+  <div class="row">
+
+    <div class="cell" style="flex:1.5;">
+      <span class="cell-label">APELLIDO PATERNO</span>
+      <span class="cell-val" contenteditable="true">${apPaterno}</span>
+    </div>
+
+    <div class="cell" style="flex:1.5;">
+      <span class="cell-label">APELLIDO MATERNO</span>
+      <span class="cell-val" contenteditable="true">${apMaterno}</span>
+    </div>
+
+    <div class="cell" style="flex:2;">
+      <span class="cell-label">NOMBRES</span>
+      <span class="cell-val" contenteditable="true">${nombres}</span>
+    </div>
+
+    <div class="cell" style="flex:0.7;align-items:center;">
+      <span class="cell-label">SEXO &nbsp; F=2 &nbsp; M=1</span>
+      <div style="display:flex;gap:2px;margin-top:3px;">${boxes(sexoCod,1)}</div>
+    </div>
+
+    <div class="cell" style="flex:1.2;">
+      <span class="cell-label">FECHA NACIMIENTO</span>
+      <div style="display:flex;gap:2px;margin-top:3px;">
+        ${boxes(fnDia,2)}
+        ${boxes(fnMes,2)}
+        ${boxes(fnAnioFull,4)}
+      </div>
+    </div>
+
+    <div class="cell" style="flex:0.5;">
+      <span class="cell-label">EDAD</span>
+      <div style="margin-top:3px;">${boxes(edad,2)}</div>
+    </div>
+
+  </div>
+
+  <div class="row" style="border-bottom:1px solid black;">
+
+    <div class="cell" style="flex:1;">
+      <span class="cell-label">R. U. N.</span>
+      <div style="display:flex;gap:2px;margin-top:3px;">${boxes(runClean,9)}</div>
+    </div>
+
+    <div class="cell" style="flex:2;">
+      <span class="cell-label">CALLE</span>
+      <span class="cell-val" contenteditable="true">${safe(calle)}</span>
+    </div>
+
+    <div class="cell" style="flex:0.6;">
+        <span class="cell-label">N°</span>
+        <span class="cell-val" contenteditable="true">${safe(numeroDireccion)}</span>
+    </div>
+
+    <div class="cell" style="flex:1.2;">
+      <span class="cell-label">POBLACIÓN O VILLA</span>
+      <span class="cell-val" contenteditable="true">&nbsp;</span>
+    </div>
+
+    <div class="cell" style="flex:1.2;">
+      <span class="cell-label">COMUNA</span>
+      <span class="cell-val">${safe(comunaAlumno)}</span>
+    </div>
+
+    <div class="cell" style="flex:1;">
+      <span class="cell-label">CIUDAD</span>
+      <span class="cell-val">Copiapó</span>
+    </div>
+
+    <div class="cell" style="flex:0.7;">
+      <span class="cell-label">CODIF.COM.</span>
+      <span class="cell-val">&nbsp;</span>
+    </div>
+
+  </div>
+
+  <!-- ===== INFORME ACCIDENTE ===== -->
+  <div class="sec-title">I N F O R M E &nbsp; S O B R E &nbsp; E L &nbsp; A C C I D E N T E
+    <span style="font-size:9px;font-weight:normal;margin-left:20px;">( FECHA, HORA Y DIA de la SEMANA EN QUE SE ACCIDENTÓ )</span>
+  </div>
+
+  <div class="acc-grid">
+
+    <div class="acc-cell">
+      <div class="cell-label">HORA</div>
+      <div style="display:flex;gap:2px;margin-top:3px;">${boxes(hora,2)}</div>
+    </div>
+
+    <div class="acc-cell">
+      <div class="cell-label">MINUTOS</div>
+      <div style="display:flex;gap:2px;margin-top:3px;">${boxes(mins,2)}</div>
+    </div>
+
+    <div class="acc-cell">
+      <div class="cell-label">AÑO</div>
+      <div style="display:flex;gap:2px;margin-top:3px;">${boxes("20"+anio,2)}</div>
+    </div>
+
+    <div class="acc-cell">
+      <div class="cell-label">MES</div>
+      <div style="display:flex;gap:2px;margin-top:3px;">${boxes(mes,2)}</div>
+    </div>
+
+    <div class="acc-cell">
+      <div class="cell-label">DIA</div>
+      <div style="display:flex;gap:2px;margin-top:3px;">${boxes(dia,2)}</div>
+    </div>
+
+    <div class="acc-cell" style="border-right:none;">
+      <div class="cell-label">TESTIGOS: (EN CASO DE TRAYECTO)</div>
+    </div>
+
+  </div>
+
+  <div class="dias-grid">
+
+    <div class="dias-col" style="font-size:9px;">
+      <table style="width:100%;border-collapse:collapse;">
+        <tr><td>LUNES</td><td style="border:1px solid black;width:16px;text-align:center;">1</td></tr>
+        <tr><td>MARTES</td><td style="border:1px solid black;width:16px;text-align:center;">2</td></tr>
+        <tr><td>MIERCOLES</td><td style="border:1px solid black;width:16px;text-align:center;">3</td></tr>
+        <tr><td>JUEVES</td><td style="border:1px solid black;width:16px;text-align:center;">4</td></tr>
+        <tr><td>VIERNES</td><td style="border:1px solid black;width:16px;text-align:center;">5</td></tr>
+        <tr><td>SABADO</td><td style="border:1px solid black;width:16px;text-align:center;">6</td></tr>
+        <tr><td>DOMINGO</td><td style="border:1px solid black;width:16px;text-align:center;">7</td></tr>
+      </table>
+    </div>
+
+    <div class="dias-col">
+      <div style="font-weight:bold;margin-bottom:5px;">DIA ACCIDENTE</div>
+      ${box(diaSemanaNumero,"28px")}
+      <div style="margin-top:8px;">
+        <div style="font-weight:bold;font-size:9px;">ACCIDENTE</div>
+        <div style="margin-top:4px;">
+  DE TRAYECTO = 1
+  <span contenteditable="true">${box("","22px")}</span>
+</div>
+
+<div style="margin-top:4px;">
+  EN LA ESCUELA = 2
+  <span contenteditable="true">${box("","22px")}</span>
+</div>
+      </div>
+    </div>
+
+    <div class="dias-col" style="border-right:none;grid-column:3/5;">
+      <div style="font-size:9px;font-weight:bold;margin-bottom:4px;">a) TESTIGO 1</div>
+      <div style="display:flex;gap:6px;align-items:flex-end;">
+        <div style="flex:2;border-bottom:1px solid black;min-height:14px;" contenteditable="true">&nbsp;</div>
+        <div style="font-size:8px;">NOMBRE - APELLIDO</div>
+        <div style="font-size:8px;">C. NAC. DE ID.</div>
+        <div style="border-bottom:1px solid black;width:60px;min-height:14px;" contenteditable="true">&nbsp;</div>
+      </div>
+      <div style="margin-top:10px;font-size:9px;font-weight:bold;">b) TESTIGO 2</div>
+      <div style="display:flex;gap:6px;align-items:flex-end;margin-top:4px;">
+        <div style="flex:2;border-bottom:1px solid black;min-height:14px;" contenteditable="true">&nbsp;</div>
+        <div style="font-size:8px;">NOMBRE - APELLIDO</div>
+        <div style="font-size:8px;">C. NAC. DE ID.</div>
+        <div style="border-bottom:1px solid black;width:60px;min-height:14px;" contenteditable="true">&nbsp;</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- CIRCUNSTANCIA -->
+  <div style="border:1px solid black;border-top:none;padding:5px;">
+    <div style="font-weight:bold;font-size:11px;letter-spacing:1px;margin-bottom:4px;">
+      C I R C U N S T A N C I A &nbsp; D E L &nbsp; A C C I D E N T E
+      <span style="font-size:9px;font-weight:normal;margin-left:10px;">(DESCRIBA COMO OCURRIÓ - CAUSAL)</span>
+    </div>
+    <div contenteditable="true" style="min-height:70px;border:none;font-size:11px;outline:none;">&nbsp;</div>
+  </div>
+
+  <!-- FIRMA RECTOR -->
+ <div style="text-align:right;padding-right:60px;margin-top:45px;margin-bottom:35px;">
+    <div style="display:inline-block;text-align:center;">
+      <div style="border-top:1px solid black;width:220px;margin-bottom:3px;"></div>
+      <div style="font-size:9px;font-weight:bold;">FIRMA Y TIMBRE<br>RECTOR O REPRESENTANTE</div>
+    </div>
+  </div>
+
+  <!-- ===== NATURALEZA Y CONSECUENCIA ===== -->
+  <div class="sec-title" style="margin-top:35px;">
+  N A T U R A L E Z A &nbsp; Y &nbsp; C O N S E C U E N C I A &nbsp; D E L &nbsp; A C C I D E N T E
+    <span style="float:right;font-size:9px;font-weight:normal;">
+      S &nbsp; S &nbsp;&nbsp; ESTABLECIMIENTO &nbsp;&nbsp; CÓDIGO ___
+    </span>
+  </div>
+
+  <div style="border:1px solid black;padding:6px;">
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px;">
+      <div>
+        <div style="font-size:9px;font-weight:bold;margin-bottom:3px;">ESTABLECIMIENTO ASISTENCIAL</div>
+        <div style="border-bottom:1px solid black;min-height:16px;" contenteditable="true">&nbsp;</div>
+      </div>
+      <div>
+        <div style="font-size:9px;font-weight:bold;margin-bottom:3px;">DIAGNÓSTICO MÉDICO</div>
+        <div style="border-bottom:1px solid black;min-height:16px;" contenteditable="true">&nbsp;</div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:8px;font-size:10px;">
+
+      <div>
+        <div style="font-weight:bold;margin-bottom:3px;">PARTE DEL CUERPO AFECTADA</div>
+        <div style="border-bottom:1px solid black;min-height:16px;" contenteditable="true">&nbsp;</div>
+      </div>
+
+      <div>
+        <div style="font-weight:bold;margin-bottom:3px;">HOSPITALIZACIÓN</div>
+        <div>SI ${box("","18px")} 1</div>
+        <div style="margin-top:3px;">NO ${box("","18px")} 2</div>
+      </div>
+
+      <div>
+        <div style="font-weight:bold;margin-bottom:3px;">TOTAL DÍAS HOSP.</div>
+        <div style="display:flex;gap:2px;">${boxes("",3)}</div>
+      </div>
+
+      <div>
+        <div style="font-weight:bold;margin-bottom:3px;">INCAPACIDAD</div>
+        <div>SI ${box("","18px")} 1</div>
+        <div style="margin-top:3px;">NO ${box("","18px")} 2</div>
+      </div>
+
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;font-size:10px;">
+
+      <div>
+        <div style="font-weight:bold;margin-bottom:3px;">TIPO DE INCAPACIDAD</div>
+        <div>LEVE ${box("","18px")} 1</div>
+        <div style="margin-top:2px;">TEMPORAL ${box("","18px")} 2</div>
+        <div style="margin-top:2px;">INVALIDEZ PARCIAL ${box("","18px")} 3</div>
+        <div style="margin-top:2px;">INVALIDEZ TOTAL ${box("","18px")} 4</div>
+        <div style="margin-top:2px;">GRAN INVALIDEZ ${box("","18px")} 5</div>
+        <div style="margin-top:2px;">MUERTE ${box("","18px")} 6</div>
+      </div>
+
+      <div>
+        <div style="font-weight:bold;margin-bottom:3px;">CAUSA DEL CIERRE DEL CASO</div>
+        <div>ALTA MÉDICA ${box("","18px")} 1</div>
+        <div style="margin-top:2px;">INVALIDEZ ${box("","18px")} 2</div>
+        <div style="margin-top:2px;">ABANDONO DE TRATAMIENTO ${box("","18px")} 3</div>
+        <div style="margin-top:2px;">MUERTE ${box("","18px")} 4</div>
+      </div>
+
+      <div>
+        <div style="font-weight:bold;margin-bottom:3px;">FECHA CIERRE DEL CASO</div>
+        <div style="display:flex;gap:4px;margin-top:4px;font-size:9px;">
+          <div>
+            <div>AÑO</div>
+            <div style="display:flex;gap:1px;">${boxes("",4)}</div>
+          </div>
+          <div>
+            <div>MES</div>
+            <div style="display:flex;gap:1px;">${boxes("",2)}</div>
+          </div>
+          <div>
+            <div>DÍA</div>
+            <div style="display:flex;gap:1px;">${boxes("",2)}</div>
+          </div>
+        </div>
+        <div style="margin-top:20px;text-align:right;font-size:9px;font-weight:bold;">FIRMA DEL ESTADÍSTICO</div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- TOTAL DÍAS INCAPACIDAD (segunda línea) -->
+  <div style="border:1px solid black;border-top:none;padding:5px;font-size:10px;">
+    <span style="font-weight:bold;">TOTAL DÍAS INCAPACIDAD:</span>
+    <span style="display:inline-flex;gap:2px;margin-left:8px;">${boxes("",4)}</span>
+  </div>
+
+  <!-- BOTÓN IMPRIMIR -->
+  <button class="btn-print" onclick="window.print()">
+    🖨 Imprimir / Guardar PDF
+  </button>
+
+</div>
+
+</body>
+</html>`);
+
+    w.document.close();
+}
+
+/* SAFE */
 function safe(text){
+
     if(!text) return "";
+
     return text.toString()
         .replace(/</g,"&lt;")
         .replace(/>/g,"&gt;");
 }
 
-document.getElementById("buscar").addEventListener("input", () => {
+/* EVENTOS */
+document.getElementById("buscar")
+.addEventListener("input", () => {
+
     pagina = 1;
+
     render();
 });
 
-document.getElementById("filtroCurso").addEventListener("change", () => {
+document.getElementById("filtroCurso")
+.addEventListener("change", () => {
+
     pagina = 1;
+
     render();
 });
+
 </script>
 
 </body>
